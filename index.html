@@ -1,0 +1,4186 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mistery Desa Pasirranji (Copy)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Creepster&family=Special+Elite&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* ===== style.css ===== */
+/* Malam Mencekam 3D: biru-tinta malam, cahaya lentera amber, satu aksen merah untuk bahaya.
+   Gaya menu dan HUD mengikuti acuan: judul besar di kiri, daftar menu ◆, tombol bundar berbingkai putih.
+   Layout dirancang landscape. */
+:root {
+  color-scheme: dark;
+  --ink: #0a0e17;
+  --panel: rgba(10, 14, 22, 0.82);
+  --panel-solid: #111827;
+  --line: rgba(255, 255, 255, 0.16);
+  --line-strong: rgba(255, 255, 255, 0.55);
+  --fg: #e6ebf2;
+  --muted: #9aa6b8;
+  --moon: #c9d3e0;
+  --lantern: #f0b35a;
+  --danger: #c8473b;
+  --uv: #a78bfa;
+  --ok: #7fb89a;
+  --focus: #f0b35a;
+  --font-display: 'Bebas Neue', 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  --font-ui: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+[hidden] { display: none !important; }
+
+button { font: inherit; }
+button:focus-visible, input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+
+#canvas-container { position: fixed; inset: 0; z-index: 1; }
+#canvas-container canvas { display: block; }
+
+/* Lapisan efek layar */
+.fx { position: fixed; inset: 0; pointer-events: none; }
+#damage-overlay {
+  z-index: 15;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(200, 40, 30, 0.8) 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+#scare-overlay {
+  z-index: 16;
+  background: radial-gradient(circle at 50% 45%, #fff 0%, #7f1d1d 22%, #000 70%);
+  opacity: 0;
+  transition: opacity 0.45s ease-out;
+}
+#fade {
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+  pointer-events: none;
+}
+
+#crosshair {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Komponen dasar */
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 4px 0 8px;
+}
+.bar > i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #b91c1c, #ef4444);
+  transition: width 0.2s linear;
+}
+.bar.battery > i { background: linear-gradient(90deg, #a16207, var(--lantern)); }
+.bar.stamina > i { background: linear-gradient(90deg, #1d4ed8, #7fb1e6); }
+.bar.thin { height: 6px; margin-bottom: 6px; }
+
+kbd {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--lantern);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 2px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.2s ease, transform 0.1s ease, border-color 0.2s ease;
+}
+.btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--moon); }
+.btn:active { transform: scale(0.98); }
+.btn.primary {
+  background: var(--lantern);
+  color: #1a1206;
+  border-color: transparent;
+}
+.btn.primary:hover { background: #f6c675; }
+.btn.danger {
+  background: rgba(200, 71, 59, 0.16);
+  border-color: rgba(200, 71, 59, 0.6);
+}
+.btn.danger:hover { background: rgba(200, 71, 59, 0.28); }
+
+/* Tombol bundar berbingkai putih (gaya HUD acuan) */
+.ring-btn {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.14), rgba(8, 10, 16, 0.88) 62%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  transition: transform 0.1s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.ring-btn svg { width: 24px; height: 24px; }
+.ring-btn:active { transform: scale(0.94); }
+.ring-btn.on { border-color: var(--lantern); color: var(--lantern); }
+.ring-btn.uv.on { border-color: var(--uv); color: var(--uv); }
+
+/* HUD */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+  padding-bottom: 12px;
+  padding-left: max(14px, env(safe-area-inset-left, 0px));
+  padding-right: max(14px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+}
+
+#hud-stats {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: max(14px, env(safe-area-inset-left, 0px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(232px, 36vw);
+}
+.avatar {
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: radial-gradient(circle at 35% 30%, #2b3754, #0b0f18 70%);
+  display: grid;
+  place-items: center;
+  color: #e6ebf2;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+.avatar svg { width: 34px; height: 34px; }
+.hud-bars { flex: 1 1 auto; min-width: 0; }
+.hud-bars .row { font-size: 12px; }
+
+#hud-left-row {
+  position: absolute;
+  top: calc(max(12px, env(safe-area-inset-top, 0px)) + 88px);
+  left: max(14px, env(safe-area-inset-left, 0px));
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+
+#objective {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(300px, 34vw);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+#chapter-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lantern);
+}
+#objective-text { font-size: 15px; line-height: 1.35; }
+#goal-arrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+#goal-arrow svg { width: 18px; height: 18px; transition: transform 0.15s linear; }
+
+/* Kolom kanan atas: pause, chip, radar, lalu tombol UV dan bantuan */
+#hud-right {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top, 0px));
+  right: max(14px, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border: 2px solid #fff;
+  border-radius: 6px;
+  background: rgba(8, 10, 16, 0.82);
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+.chip .label { font-family: var(--font-ui); font-size: 11px; }
+.chip b { font-weight: 400; color: #fff; }
+.chip-btn {
+  width: 40px;
+  padding: 0;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  color: #fff;
+}
+.chip-btn svg { width: 18px; height: 18px; }
+.chip-btn:active { transform: scale(0.95); }
+
+#minimap {
+  width: 124px;
+  height: 124px;
+  border-radius: 50%;
+  background: rgba(5, 8, 14, 0.85);
+  border: 2px solid #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+#flash-mode {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--lantern);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+#flash-mode.uv { color: var(--uv); }
+#hud-right-row { display: flex; gap: 10px; pointer-events: none; }
+
+/* Prompt interaksi, pemberitahuan, dan kotak cerita */
+#prompt {
+  position: fixed;
+  left: 50%;
+  top: 62%;
+  transform: translateX(-50%);
+  z-index: 21;
+  pointer-events: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg);
+  background: rgba(8, 12, 20, 0.8);
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 2px solid #fff;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#notice {
+  position: fixed;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 22;
+  pointer-events: none;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fde7b8;
+  background: rgba(8, 12, 20, 0.7);
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+  animation: fadeout 3.4s ease forwards;
+  width: max-content;
+  max-width: 88vw;
+}
+
+#story-box {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 24;
+  width: min(620px, calc(100vw - 300px));
+  min-width: 300px;
+  box-sizing: border-box;
+  padding: 16px 20px 12px;
+  border-radius: 10px;
+  border: 2px solid #fff;
+  background: rgba(10, 14, 23, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+#story-speaker {
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: var(--lantern);
+}
+#story-text {
+  margin: 0 0 8px;
+  min-height: 3.2em;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+#story-next {
+  margin: 0;
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+}
+#story-next.ready { color: var(--lantern); }
+
+/* Kontrol sentuh (hanya tampil di perangkat sentuh) */
+#touch {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+  display: none;
+}
+body.is-touch #touch { display: block; }
+/* Saat menu utama terbuka, kontrol sentuh disembunyikan agar tidak tampak di belakangnya */
+body:has(#menu:not([hidden])) #touch { display: none; }
+body.is-touch .desk-only { display: none; }
+body.is-touch #flash-mode { display: none; }
+body.is-touch #hud-left-row { top: calc(max(12px, env(safe-area-inset-top, 0px)) + 88px); }
+/* Di HP, kotak cerita naik ke atas tombol agar tidak menutupi kontrol */
+body.is-touch #story-box { bottom: 160px; width: min(600px, calc(100vw - 32px)); }
+body.is-touch #prompt { top: 56%; }
+
+#stick {
+  position: absolute;
+  left: max(18px, env(safe-area-inset-left, 0px));
+  bottom: 18px;
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  background: rgba(10, 14, 22, 0.5);
+  border: 3px solid #fff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+  touch-action: none;
+}
+#stick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  pointer-events: none;
+}
+
+#actions {
+  position: absolute;
+  right: max(18px, env(safe-area-inset-right, 0px));
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  gap: 10px;
+  pointer-events: auto;
+}
+.tbtn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.14), rgba(8, 10, 16, 0.88) 62%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.1;
+  white-space: nowrap;
+  touch-action: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+.tbtn.on { border-color: var(--lantern); color: var(--lantern); }
+.tbtn.uv.on { border-color: var(--uv); color: var(--uv); }
+.tbtn.primary {
+  background: radial-gradient(circle at 35% 30%, #ffd58a, #d9902e 70%);
+  border-color: #fff;
+  color: #1a1206;
+}
+.tbtn.spacer { visibility: hidden; }
+
+/* Overlay umum */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(4, 6, 11, 0.86);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  padding-top: max(16px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.card {
+  width: min(760px, 100%);
+  box-sizing: border-box;
+  padding: 24px 28px;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  background: var(--panel-solid);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7);
+}
+.card h2 { font-size: clamp(34px, 5vw, 50px); line-height: 1; }
+.card p { color: #c8d0dc; margin: 10px 0 0; text-wrap: pretty; }
+
+/* Menu utama: judul di kiri atas, daftar menu di bawahnya, gambar 3D terlihat di kanan */
+.menu-screen {
+  justify-content: flex-start;
+  align-items: stretch;
+  background: linear-gradient(90deg,
+    rgba(4, 6, 11, 0.95) 0%,
+    rgba(4, 6, 11, 0.74) 34%,
+    rgba(4, 6, 11, 0.16) 70%,
+    rgba(4, 6, 11, 0) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding-left: max(8vw, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  position: fixed;
+}
+.menu-wrap {
+  width: min(520px, 90vw);
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding-block: 16px;
+}
+.menu-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lantern);
+}
+.menu-title {
+  font-size: clamp(56px, 9vw, 112px);
+  line-height: 0.92;
+  color: #e6ebf2;
+  background: linear-gradient(180deg, #ffffff 10%, #9aa6b8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+.menu-tag {
+  font-size: 15px;
+  color: #b7c0cd;
+  margin: 12px 0 0;
+  max-width: 420px;
+  text-wrap: pretty;
+}
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.menu-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: #e6ebf2;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3.4vw, 34px);
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.menu-item::before {
+  content: "\25C6";
+  font-size: 12px;
+  color: var(--moon);
+  flex: 0 0 auto;
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: linear-gradient(90deg, #f4f6f9, #d3dae4 92%);
+  color: #0a0e17;
+  clip-path: polygon(0 4%, 100% 0, 97% 100%, 1% 96%);
+  outline: none;
+}
+.menu-item:hover::before,
+.menu-item:focus-visible::before { color: #0a0e17; }
+.menu-foot {
+  position: absolute;
+  left: 50%;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Catatan Ayu (jurnal) */
+.journal-card { width: min(680px, 100%); max-height: 86vh; overflow-y: auto; }
+.journal-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.journal-entry {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+.journal-entry h3 { font-size: 24px; color: var(--lantern); }
+.journal-entry p { margin: 6px 0 0; font-size: 15px; color: #d6dde8; line-height: 1.55; }
+.journal-empty { margin-top: 14px; color: var(--muted); }
+
+/* Cara bermain */
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+.guide-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+}
+.guide-item b { display: block; font-family: var(--font-display); font-weight: 400; font-size: 22px; letter-spacing: 0.04em; margin-bottom: 2px; }
+.guide-item span { font-size: 13px; color: #b7c0cd; line-height: 1.45; }
+.guide-keys { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+/* Pengaturan */
+.setting {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.setting:last-of-type { border-bottom: 0; }
+.setting-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.setting-head b { font-size: 15px; }
+.setting-head span { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; border: 2px solid var(--line-strong); border-radius: 10px; overflow: hidden; }
+.seg button {
+  min-height: 42px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.seg button[aria-pressed="true"] { background: var(--lantern); color: #1a1206; }
+.toggle {
+  min-width: 84px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.toggle[aria-pressed="true"] { background: rgba(127, 184, 154, 0.2); border-color: var(--ok); color: #d7f2e3; }
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--lantern);
+  pointer-events: auto;
+  min-height: 36px;
+}
+
+/* Layar portrait: minta pemain memutar HP */
+#rotate .card { text-align: center; max-width: 420px; }
+#rotate .turn {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+  border: 2px solid var(--moon);
+  border-radius: 12px;
+  position: relative;
+  animation: turn 2.4s ease-in-out infinite;
+}
+#rotate .turn::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 16px;
+  border: 1px dashed var(--line-strong);
+}
+
+/* Panduan, catatan, dan pengaturan tampil di atas menu jeda */
+#guide, #settings { z-index: 35; }
+#journal { z-index: 36; }
+
+/* Layar akhir */
+#ending .card { text-align: center; }
+#ending-title { color: var(--lantern); font-size: clamp(40px, 6vw, 60px); }
+
+/* Layar kecil dan landscape sempit */
+@media (max-height: 520px) {
+  .avatar { width: 52px; height: 52px; }
+  .avatar svg { width: 28px; height: 28px; }
+  .ring-btn { width: 46px; height: 46px; }
+  #hud-left-row { top: calc(max(12px, env(safe-area-inset-top, 0px)) + 72px); gap: 8px; }
+  #minimap { width: 96px; height: 96px; }
+  .card { padding: 16px 20px; }
+  .card h2 { font-size: 34px; }
+  .guide-grid { gap: 8px; margin-top: 10px; }
+  .guide-item { padding: 8px 10px; }
+  #story-text { min-height: 2.6em; font-size: 15px; }
+  #stick { width: 116px; height: 116px; bottom: 10px; }
+  .tbtn { width: 54px; height: 54px; font-size: 10px; }
+  #actions { grid-template-columns: repeat(3, 54px); bottom: 10px; }
+  .menu-wrap { gap: 16px; }
+  .menu-title { font-size: 64px; }
+}
+
+@media (max-width: 640px) {
+  .menu-screen { background: rgba(4, 6, 11, 0.9); }
+  .guide-grid { grid-template-columns: 1fr; }
+  .menu-foot { display: none; }
+}
+
+@keyframes turn {
+  0%, 20% { transform: rotate(0deg); }
+  60%, 100% { transform: rotate(90deg); }
+}
+@keyframes fadeout { 0%, 75% { opacity: 1; } 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+</style>
+<style>
+/* ===== creepy.css ===== */
+/* Lapisan horor di atas style.css: font menyeramkan, grain film, animasi, jumpscare, dan gaya ending.
+   Dimuat setelah style.css sehingga aturan di sini menimpa yang lama. */
+:root {
+  --font-display: 'Creepster', 'Impact', 'Arial Black', sans-serif;
+  --font-story: 'Special Elite', 'Courier New', ui-monospace, monospace;
+  --blood: #8b0000;
+  --blood-hot: #c81e1e;
+  --bone: #d9d4c6;
+  --ink: #050608;
+  --ash: #8d8a86;
+  --rust: #6b3a1f;
+}
+
+/* Grain dan vignette di seluruh layar */
+#grain {
+  z-index: 14;
+  background:
+    radial-gradient(ellipse at center, transparent 48%, rgba(0, 0, 0, 0.82) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .9 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/></svg>");
+  mix-blend-mode: overlay;
+  opacity: 0.55;
+  animation: grainShift 0.5s steps(4) infinite;
+}
+@keyframes grainShift {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-2%, 1%); }
+  50% { transform: translate(1%, -2%); }
+  75% { transform: translate(-1%, 2%); }
+  100% { transform: translate(2%, 0); }
+}
+
+body { background: var(--ink); }
+#canvas-container { filter: contrast(1.08) saturate(0.82); }
+
+/* Judul menu: flicker dan cahaya merah yang berdenyut */
+.menu-title {
+  font-family: var(--font-display);
+  font-size: clamp(50px, 7.2vw, 96px);
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+  background: linear-gradient(180deg, #f3eee2 10%, #b0a58f 60%, #5a2a1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(200, 30, 30, 0.45));
+  animation: titleFlicker 6s infinite;
+}
+@keyframes titleFlicker {
+  0%, 18%, 22%, 62%, 64%, 100% { opacity: 1; }
+  19%, 21% { opacity: 0.35; }
+  63% { opacity: 0.6; }
+}
+.menu-kicker { color: var(--blood-hot); letter-spacing: 0.22em; }
+.menu-tag { font-family: var(--font-story); font-size: 14px; color: #bdb6a7; line-height: 1.6; }
+.menu-screen {
+  background:
+    radial-gradient(ellipse at 80% 60%, rgba(139, 0, 0, 0.18), transparent 60%),
+    linear-gradient(90deg, rgba(3, 4, 6, 0.97) 0%, rgba(3, 4, 6, 0.78) 36%, rgba(3, 4, 6, 0.2) 72%, rgba(3, 4, 6, 0) 100%);
+}
+.menu-item { font-family: var(--font-display); letter-spacing: 0.04em; }
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: linear-gradient(90deg, var(--bone), #a79f8e 92%);
+  color: #0b0604;
+  animation: jitter 0.3s steps(2) 2;
+}
+.menu-item::before { color: var(--blood-hot); }
+
+/* Teks cerita, catatan, dan petunjuk memakai mesin tik */
+#story-box {
+  border-color: var(--blood);
+  background: rgba(8, 4, 4, 0.95);
+  box-shadow: 0 0 30px rgba(139, 0, 0, 0.35), 0 12px 40px rgba(0, 0, 0, 0.7);
+  animation: boxPulse 3.2s ease-in-out infinite;
+}
+@keyframes boxPulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(139, 0, 0, 0.25), 0 12px 40px rgba(0, 0, 0, 0.7); }
+  50% { box-shadow: 0 0 38px rgba(200, 30, 30, 0.45), 0 12px 40px rgba(0, 0, 0, 0.7); }
+}
+#story-speaker { font-family: var(--font-display); font-size: 26px; color: var(--blood-hot); letter-spacing: 0.04em; }
+#story-text { font-family: var(--font-story); font-size: 16px; color: var(--bone); }
+#story-next { font-family: var(--font-story); }
+#objective-text { font-family: var(--font-story); font-size: 14px; color: #e4ddcf; }
+#chapter-label { font-family: var(--font-display); font-size: 17px; letter-spacing: 0.05em; color: var(--blood-hot); text-transform: none; }
+#notice { font-family: var(--font-story); color: var(--bone); border: 1px solid rgba(200, 30, 30, 0.4); animation: fadeout 3.4s ease forwards, jitter 0.4s steps(2) 1; }
+#prompt { font-family: var(--font-story); border-color: var(--blood-hot); }
+.label { font-family: var(--font-story); color: var(--ash); }
+.chip { border-color: var(--bone); font-family: var(--font-display); letter-spacing: 0.04em; }
+#flash-mode { font-family: var(--font-story); color: #d4a04a; }
+#flash-mode.uv { color: #b57bff; }
+
+/* Radar: sedikit noda merah */
+#minimap { border-color: var(--bone); box-shadow: 0 0 18px rgba(139, 0, 0, 0.45); }
+
+/* Jumpscare: wajah SCP 705 menerjang layar */
+#jumpscare {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+}
+#jumpscare:not([hidden]).js-go { animation: jsFlash 1.1s steps(3) forwards; }
+#jumpscare:not([hidden]).js-go #js-face { animation: lunge 1.1s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+#js-face {
+  width: min(78vw, 70vh);
+  max-width: 560px;
+  opacity: 0;
+  transform: scale(0.2);
+  filter: contrast(1.25) brightness(0.9);
+}
+#js-face svg { width: 100%; height: auto; display: block; }
+#js-text {
+  position: absolute;
+  bottom: 6%;
+  text-shadow: 0 0 8px #000, 0 0 2px #000;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-story);
+  font-size: clamp(14px, 2.4vw, 20px);
+  color: var(--bone);
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 0;
+}
+#jumpscare.js-go #js-text { animation: textIn 1.1s ease-out 0.5s forwards; }
+@keyframes lunge {
+  0% { opacity: 0; transform: scale(0.2) translate(0, 0); }
+  10% { opacity: 1; transform: scale(1.1) translate(-2%, 1%); }
+  20% { transform: scale(1.3) translate(2%, -2%); }
+  30% { transform: scale(1.22) translate(-3%, 2%); }
+  40%, 100% { opacity: 1; transform: scale(1.45) translate(0, 0); }
+}
+@keyframes jsFlash {
+  0% { background: #fff; }
+  8% { background: #000; }
+  16% { background: #6a0000; }
+  24%, 100% { background: #000; }
+}
+@keyframes textIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Layar gelap berdarah saat tertangkap */
+.blood-title {
+  font-family: var(--font-display);
+  color: var(--blood-hot);
+  font-size: clamp(44px, 7vw, 72px);
+  text-shadow: 0 0 18px rgba(200, 30, 30, 0.6);
+  animation: pulseRed 2.4s ease-in-out infinite;
+}
+@keyframes pulseRed {
+  0%, 100% { text-shadow: 0 0 12px rgba(200, 30, 30, 0.4); }
+  50% { text-shadow: 0 0 28px rgba(255, 40, 40, 0.85); }
+}
+.gameover-card { text-align: center; border-color: var(--blood); }
+.gameover-card p { font-family: var(--font-story); color: #cfc6b5; }
+
+/* Tombol bawah kartu */
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+.btn { font-family: var(--font-story); letter-spacing: 0.04em; }
+.btn.primary { background: var(--bone); color: #140a06; }
+.btn.primary:hover { background: #fff; }
+
+/* Jurnal */
+.journal-card { border-color: var(--rust); }
+.journal-card h2 { font-size: clamp(38px, 5.4vw, 56px); }
+.journal-entry { border-color: rgba(139, 0, 0, 0.35); background: rgba(40, 10, 8, 0.25); }
+.journal-entry h3 { font-family: var(--font-display); color: var(--blood-hot); font-size: 26px; letter-spacing: 0.03em; }
+.journal-entry p { font-family: var(--font-story); font-size: 14px; color: #d8cfbe; line-height: 1.7; }
+.journal-entry.clue h3 { color: #c79a4a; }
+
+/* Pilihan keputusan di segel */
+.choice-card { border-color: var(--blood-hot); text-align: center; }
+.choice-card h2 { font-size: clamp(38px, 5.6vw, 58px); color: var(--bone); animation: jitter 5s steps(2) infinite; }
+.choice-card p { font-family: var(--font-story); }
+.choice-list { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; text-align: left; }
+.choice-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 6px;
+  border: 1px solid rgba(200, 30, 30, 0.55);
+  background: rgba(30, 6, 6, 0.6);
+  color: var(--bone);
+  cursor: pointer;
+  pointer-events: auto;
+  font-family: var(--font-story);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+.choice-btn b { font-family: var(--font-display); font-weight: 400; font-size: 26px; letter-spacing: 0.03em; }
+.choice-btn span { font-size: 14px; color: #b9ae9b; }
+.choice-btn:hover, .choice-btn:focus-visible { background: rgba(139, 0, 0, 0.4); border-color: var(--blood-hot); }
+.choice-btn:active { transform: scale(0.99); }
+.choice-btn[hidden] { display: none !important; }
+
+/* Layar akhir: tiga nada berbeda */
+.ending-card { text-align: center; }
+#ending-title { font-family: var(--font-display); font-size: clamp(56px, 9vw, 96px); letter-spacing: 0.02em; }
+#ending-text { font-family: var(--font-story); font-size: 16px; line-height: 1.75; color: #d9d0bd; max-width: 560px; margin-inline: auto; }
+#ending-text .line { display: block; opacity: 0; animation: lineIn 0.8s ease forwards; }
+@keyframes lineIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+#ending.ending-sad .ending-card { border-color: #3d4a5c; background: #0b0f16; }
+#ending.ending-sad #ending-title { color: #9aa9bd; text-shadow: 0 0 22px rgba(90, 120, 160, 0.4); }
+#ending.ending-happy .ending-card { border-color: #d9a441; background: linear-gradient(180deg, #2a1d0c, #100b06); }
+#ending.ending-happy #ending-title { color: #ffd98a; text-shadow: 0 0 26px rgba(255, 190, 90, 0.5); }
+#ending.ending-tumbal .ending-card { border-color: var(--blood-hot); background: #090202; }
+#ending.ending-tumbal #ending-title { color: var(--blood-hot); animation: glitch 2.6s steps(1) infinite; }
+
+@keyframes jitter {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-1px, 1px); }
+  50% { transform: translate(1px, -1px); }
+  75% { transform: translate(-1px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes glitch {
+  0%, 88%, 100% { transform: none; text-shadow: 0 0 20px rgba(200, 30, 30, 0.6); }
+  90% { transform: translate(-3px, 0); text-shadow: 3px 0 #0ff, -3px 0 #f00; }
+  92% { transform: translate(3px, 1px); text-shadow: -2px 0 #0ff, 2px 0 #f00; }
+  94% { transform: none; }
+}
+
+@media (max-height: 520px) {
+  .menu-title { font-size: 60px; }
+  #story-speaker { font-size: 22px; }
+  .choice-btn b { font-size: 22px; }
+  .choice-btn { padding: 8px 12px; }
+  #ending-title { font-size: 52px; }
+  #js-text { bottom: 8%; }
+}
+@media (max-width: 640px) {
+  .choice-btn span { font-size: 13px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #grain { display: none; }
+}
+
+</style>
+
+<div id="canvas-container"></div>
+<div id="damage-overlay" class="fx"></div>
+<div id="scare-overlay" class="fx"></div>
+<div id="grain" class="fx" aria-hidden="true"></div>
+<div id="fade"></div>
+<div id="crosshair" hidden></div>
+
+<!-- HUD -->
+<header id="hud" hidden>
+  <div id="hud-stats">
+    <div class="avatar" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7v12l2.5-2 2.5 2 2-2 2 2 2.5-2 2.5 2V9a7 7 0 0 0-7-7zm-3 6.5a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8zm6 0a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8z" fill="currentColor"/></svg>
+    </div>
+    <div class="hud-bars">
+      <div class="row"><span class="label">Darah</span><span id="hp-text">100%</span></div>
+      <div class="bar hp"><i id="hp-bar"></i></div>
+      <div class="row"><span class="label">Baterai</span><span id="bat-text">100%</span></div>
+      <div class="bar battery thin"><i id="bat-bar"></i></div>
+      <div class="bar stamina thin"><i id="stam-bar"></i></div>
+    </div>
+  </div>
+
+  <div id="hud-left-row">
+    <button id="hud-goal" class="ring-btn" type="button" aria-label="Tujuan saat ini" title="Tujuan saat ini">
+      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="currentColor"/></svg>
+    </button>
+    <button id="hud-journal" class="ring-btn" type="button" aria-label="Catatan dan petunjuk (J)" title="Catatan dan petunjuk (J)">
+      <svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z M14 3v4h4 M9 11h6 M9 15h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="hud-flash" class="ring-btn desk-only" type="button" aria-label="Senter (F)" title="Senter (F)">
+      <svg viewBox="0 0 24 24"><path d="M9 3h6l1 4H8zM8 7h8v4l-1 1v9h-6v-9l-1-1z" fill="currentColor"/></svg>
+    </button>
+    <button id="hud-interact" class="ring-btn desk-only" type="button" aria-label="Pakai (E)" title="Pakai (E)">
+      <svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 12h9M18 12v3M21 12v2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+  </div>
+
+  <div id="objective">
+    <span id="chapter-label">Bab 1 · Gerbang Kampung</span>
+    <span id="objective-text">Masuk ke kampung Pasirranji.</span>
+    <span id="goal-arrow" aria-live="off">
+      <svg id="goal-svg" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2 L17 16 L10 12.5 L3 16 Z" fill="#c8473b"/></svg>
+      <span id="goal-dist">0 m</span>
+    </span>
+  </div>
+
+  <div id="hud-right">
+    <button id="pause-btn" class="chip chip-btn" type="button" aria-label="Jeda (Esc)" title="Jeda (Esc)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor"/></svg>
+    </button>
+    <div class="chip"><span class="label">Catatan</span><b id="chip-notes">0/3</b></div>
+    <div class="chip"><span class="label">Waktu</span><b id="chip-time">00:00</b></div>
+    <canvas id="minimap" width="150" height="150" aria-label="Radar kampung"></canvas>
+    <div id="flash-mode">Senter: biasa [R]</div>
+    <div id="hud-right-row">
+      <button id="hud-uv" class="ring-btn uv desk-only" type="button" aria-label="Mode UV (R)" title="Mode UV (R)">
+        <svg viewBox="0 0 24 24"><path d="M12 2c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 2 4 4z" fill="currentColor"/></svg>
+      </button>
+      <button id="hud-help" class="ring-btn" type="button" aria-label="Cara bermain" title="Cara bermain">?</button>
+    </div>
+  </div>
+</header>
+
+<div id="prompt" hidden></div>
+<div id="notice" hidden></div>
+
+<!-- Kotak cerita -->
+<div id="story-box" hidden role="dialog" aria-live="polite">
+  <h3 id="story-speaker">Bisikan</h3>
+  <p id="story-text"></p>
+  <p id="story-next">Tekan <kbd>E</kbd> atau ketuk kotak ini untuk lanjut</p>
+</div>
+
+<!-- Kontrol sentuh -->
+<div id="touch" aria-hidden="true">
+  <div id="stick"><div id="stick-knob"></div></div>
+  <div id="actions">
+    <button class="tbtn" type="button" data-act="crouch">Jongkok</button>
+    <button class="tbtn" type="button" data-act="run">Lari</button>
+    <button class="tbtn" type="button" data-act="flash">Senter</button>
+    <button class="tbtn spacer" type="button" tabindex="-1">.</button>
+    <button class="tbtn uv" type="button" data-act="uv">Mode UV</button>
+    <button class="tbtn primary" type="button" data-act="interact">Pakai</button>
+  </div>
+</div>
+
+<!-- Putar layar (portrait di HP) -->
+<div id="rotate" class="overlay" hidden>
+  <div class="card">
+    <div class="turn" aria-hidden="true"></div>
+    <h2>Putar HP ke landscape</h2>
+    <p>Mistery Desa Pasirranji dirancang untuk layar lebar. Putar HP ke samping agar kontrol dan layar terlihat jelas.</p>
+    <div style="margin-top:18px">
+      <button id="rotate-skip" class="btn" type="button">Lanjut tetap di portrait</button>
+    </div>
+  </div>
+</div>
+
+<!-- Menu utama -->
+<div id="menu" class="overlay menu-screen">
+  <div class="menu-wrap">
+    <div>
+      <div class="menu-kicker">Horor 3D · Desa Pasirranji</div>
+      <h1 class="menu-title">Mistery Desa Pasirranji</h1>
+      <p class="menu-tag">Sebulan lalu, Ayu menghilang dari desa ini. Malam ini, kau datang mencarinya. Dan sesuatu di kuburan tua itu sudah menunggumu.</p>
+    </div>
+    <ul class="menu-list" id="menu-list">
+      <li><button id="start-btn" class="menu-item" type="button">Mulai</button></li>
+      <li><button id="menu-guide-btn" class="menu-item" type="button">Cara bermain</button></li>
+      <li><button id="menu-settings-btn" class="menu-item" type="button">Pengaturan</button></li>
+      <li><button id="menu-exit-btn" class="menu-item" type="button">Keluar</button></li>
+    </ul>
+  </div>
+  <div class="menu-foot">Tekan <kbd>Enter</kbd> untuk memilih · <kbd>↑</kbd> <kbd>↓</kbd> untuk pindah</div>
+</div>
+
+<!-- Catatan dan petunjuk -->
+<div id="journal" class="overlay" hidden>
+  <div class="card journal-card" role="dialog" aria-labelledby="journal-title">
+    <div class="journal-head">
+      <h2 id="journal-title">Catatan &amp; Petunjuk</h2>
+      <span class="label">Tekan J untuk menutup</span>
+    </div>
+    <div id="journal-list"></div>
+    <div style="margin-top:16px; display:flex; justify-content:flex-end">
+      <button id="journal-close" class="btn primary" type="button">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cara bermain -->
+<div id="guide" class="overlay" hidden>
+  <div class="card" role="dialog" aria-labelledby="guide-title">
+    <h2 id="guide-title">Cara bermain</h2>
+    <p>Temui penduduk kampung, kumpulkan catatan Ayu, lalu temukan cara menghentikan SCP 705. Pilihanmu di akhir akan menentukan nasib Ayu dan kampung ini.</p>
+    <div class="guide-grid">
+      <div class="guide-item"><div><b>Bergerak</b><span>Berjalan dan menoleh. Shift untuk lari, Ctrl untuk jongkok.</span><div class="guide-keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><kbd>Shift</kbd><kbd>Ctrl</kbd></div></div></div>
+      <div class="guide-item"><div><b>Senter</b><span>Nyalakan atau matikan senter. Baterai berkurang.</span><div class="guide-keys"><kbd>F</kbd></div></div></div>
+      <div class="guide-item"><div><b>Senter UV</b><span>Dapatkan dari Kong Ruop. Sinar UV menampakkan segel dan melukai SCP 705.</span><div class="guide-keys"><kbd>R</kbd></div></div></div>
+      <div class="guide-item"><div><b>Bicara dan ambil</b><span>Bicara dengan warga dan ambil benda saat prompt muncul.</span><div class="guide-keys"><kbd>E</kbd></div></div></div>
+      <div class="guide-item"><div><b>Bersembunyi</b><span>Masuk ke lemari untuk bersembunyi. SCP 705 tidak bisa melihatmu di sana.</span><div class="guide-keys"><kbd>E</kbd></div></div></div>
+      <div class="guide-item"><div><b>Catatan dan jeda</b><span>J membuka catatan dan petunjuk. Esc untuk jeda.</span><div class="guide-keys"><kbd>J</kbd><kbd>Esc</kbd></div></div></div>
+    </div>
+    <div style="margin-top:18px; display:flex; justify-content:flex-end">
+      <button id="guide-close" class="btn primary" type="button">Mengerti</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pengaturan -->
+<div id="settings" class="overlay" hidden>
+  <div class="card" role="dialog" aria-labelledby="settings-title">
+    <h2 id="settings-title">Pengaturan</h2>
+    <div class="setting">
+      <div class="setting-head">
+        <b><label for="sens">Sensitivitas kamera</label></b>
+        <span id="sens-val">100%</span>
+      </div>
+      <input id="sens" type="range" min="50" max="200" step="10" value="100">
+    </div>
+    <div class="setting">
+      <div class="setting-head">
+        <div><b>Tingkat kesulitan</b><br><span>Mudah membuat SCP 705 lebih lambat dan kerusakan lebih kecil.</span></div>
+        <div class="seg" role="group" aria-label="Tingkat kesulitan">
+          <button type="button" data-diff="easy" aria-pressed="false">Mudah</button>
+          <button type="button" data-diff="normal" aria-pressed="true">Normal</button>
+        </div>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="setting-head">
+        <div><b>Kurangi gerakan dan kilatan</b><br><span>Mematikan goyangan kamera, lampu berkedip, dan efek layar.</span></div>
+        <button id="reduce-toggle" class="toggle" type="button" aria-pressed="false">Mati</button>
+      </div>
+    </div>
+    <div class="setting">
+      <div class="setting-head">
+        <div><b>Jumpscare</b><br><span>Wajah SCP 705 muncul tiba-tiba di layar. Matikan jika kurang nyaman.</span></div>
+        <button id="scare-toggle" class="toggle" type="button" aria-pressed="true">Nyala</button>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; justify-content:flex-end">
+      <button id="settings-close" class="btn primary" type="button">Selesai</button>
+    </div>
+  </div>
+</div>
+
+<!-- Menu jeda -->
+<div id="pause" class="overlay" hidden>
+  <div class="card" role="dialog" aria-labelledby="pause-title">
+    <h2 id="pause-title">Jeda</h2>
+    <p>Napasmu tertahan. Kampung ini belum selesai denganmu.</p>
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:18px">
+      <button id="resume-btn" class="btn primary" type="button">Lanjutkan</button>
+      <button id="pause-journal-btn" class="btn" type="button">Catatan &amp; petunjuk</button>
+      <button id="pause-guide-btn" class="btn" type="button">Cara bermain</button>
+      <button id="pause-settings-btn" class="btn" type="button">Pengaturan</button>
+      <button id="menu-btn" class="btn danger" type="button">Kembali ke menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Game over -->
+<div id="gameover" class="overlay" hidden>
+  <div class="card gameover-card">
+    <h2 class="blood-title">Kau tertangkap</h2>
+    <p id="gameover-text">Pandanganmu menggelap. Kampung itu menelanmu lagi.</p>
+    <div class="btn-row">
+      <button id="retry-btn" class="btn primary" type="button">Coba lagi</button>
+      <button id="gameover-menu-btn" class="btn" type="button">Menu utama</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pilihan di segel -->
+<div id="choice" class="overlay" hidden>
+  <div class="card choice-card" role="dialog" aria-labelledby="choice-title">
+    <div class="menu-kicker">Ruang Segel · Keputusan terakhir</div>
+    <h2 id="choice-title">SCP 705 telah runtuh</h2>
+    <p id="choice-text">Segel di bawah altar masih terbuka. Apa yang akan kau lakukan?</p>
+    <div class="choice-list">
+      <button id="choice-a" class="choice-btn" type="button" data-choice="sad">
+        <b>Segel dengan darah Ayu</b><span id="choice-a-hint">Segel tertutup, tapi Ayu ikut lenyap.</span>
+      </button>
+      <button id="choice-b" class="choice-btn" type="button" data-choice="happy" hidden>
+        <b>Bebaskan Ayu dengan jimat</b><span id="choice-b-hint">Jimat Abah Sarkum membuka segel dari dalam.</span>
+      </button>
+      <button id="choice-c" class="choice-btn" type="button" data-choice="tumbal" hidden>
+        <b>Gantikan Ayu di dalam segel</b><span id="choice-c-hint">Bi Titi sudah lama menunggu ada yang bersedia.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Akhir cerita -->
+<div id="ending" class="overlay" hidden>
+  <div class="card ending-card">
+    <div id="ending-kicker" class="menu-kicker">Akhir</div>
+    <h2 id="ending-title">Fajar</h2>
+    <p id="ending-text"></p>
+    <div class="btn-row">
+      <button id="ending-btn" class="btn primary" type="button">Main lagi</button>
+      <button id="ending-menu-btn" class="btn" type="button">Menu utama</button>
+    </div>
+  </div>
+</div>
+
+<!-- Jumpscare -->
+<div id="jumpscare" hidden aria-hidden="true">
+  <div id="js-face">
+    <svg viewBox="0 0 200 260" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <radialGradient id="jsSkin" cx="50%" cy="42%" r="60%">
+          <stop offset="0" stop-color="#ebe6d8"/>
+          <stop offset="0.6" stop-color="#b7b1a2"/>
+          <stop offset="1" stop-color="#413d36"/>
+        </radialGradient>
+        <radialGradient id="jsGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stop-color="#ff3b3b"/>
+          <stop offset="1" stop-color="#ff0000" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <path d="M40 40 Q100 -10 160 40 L168 250 Q150 230 146 200 L140 250 Q120 224 110 250 L100 210 L90 250 Q76 224 60 250 L54 200 Q48 230 32 250 Z" fill="#050505"/>
+      <path d="M100 18 C146 18 160 80 158 130 C156 186 136 232 100 240 C64 232 44 186 42 130 C40 80 54 18 100 18 Z" fill="url(#jsSkin)"/>
+      <path d="M46 92 Q74 80 98 94 M154 92 Q126 80 102 94" stroke="#15110e" stroke-width="5" fill="none" opacity="0.7"/>
+      <ellipse cx="74" cy="112" rx="20" ry="13" fill="#0a0808"/>
+      <ellipse cx="126" cy="112" rx="20" ry="13" fill="#0a0808"/>
+      <circle cx="78" cy="112" r="20" fill="url(#jsGlow)" opacity="0.5"/>
+      <circle cx="122" cy="112" r="20" fill="url(#jsGlow)" opacity="0.5"/>
+      <ellipse cx="78" cy="112" rx="4" ry="9" fill="#ff1e1e"/>
+      <ellipse cx="122" cy="112" rx="4" ry="9" fill="#ff1e1e"/>
+      <path d="M60 150 Q70 170 80 170 M140 150 Q130 170 120 170" stroke="#2a2622" stroke-width="3" fill="none"/>
+      <path d="M62 190 Q100 168 138 190 Q124 232 100 236 Q76 232 62 190 Z" fill="#0b0000"/>
+      <path d="M68 192 L74 206 L80 192 L86 210 L94 194 L100 212 L106 194 L114 210 L120 192 L126 206 L132 192" fill="none" stroke="#e8e0cc" stroke-width="4" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <div id="js-text">Ia tidak sedang melihat ke arah lain.</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ===== js/audio.js =====
+// Suara dan musik latar. Semua disintesis dengan Web Audio, tanpa file audio.
+// Lapisan: drone gelap, angin, dentang kotak musik yang sumbang, detak jantung, dan efek kejut.
+
+class SoundEngine {
+  constructor() {
+    this.ctx = null;
+    this.tension = 0;        // 0 tenang .. 1 mencekam (dikendalikan game)
+    this.musicT = 4;         // jeda sebelum dentang kotak musik berikutnya
+    this.heartT = 0;
+  }
+
+  init() {
+    if (this.ctx) {
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      return;
+    }
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = this.ctx = new AC();
+
+      this.master = ctx.createGain();
+      this.master.gain.value = 0.85;
+      const comp = ctx.createDynamicsCompressor();
+      this.master.connect(comp);
+      comp.connect(ctx.destination);
+
+      // Gema ruang kosong
+      this.reverb = ctx.createConvolver();
+      this.reverb.buffer = this._impulse(3.2, 2.6);
+      const rvGain = ctx.createGain();
+      rvGain.gain.value = 0.55;
+      this.reverb.connect(rvGain);
+      rvGain.connect(this.master);
+
+      // Gema pendek untuk kotak musik
+      this.delay = ctx.createDelay(1.0);
+      this.delay.delayTime.value = 0.42;
+      const fb = ctx.createGain();
+      fb.gain.value = 0.38;
+      this.delay.connect(fb);
+      fb.connect(this.delay);
+      this.delay.connect(this.master);
+      this.delay.connect(this.reverb);
+
+      this._startDrone();
+      this._startWind();
+    } catch (e) {
+      this.ctx = null;
+    }
+  }
+
+  _impulse(seconds, decay) {
+    const ctx = this.ctx;
+    const len = Math.floor(ctx.sampleRate * seconds);
+    const buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    }
+    return buf;
+  }
+
+  _noiseBuffer(seconds) {
+    const ctx = this.ctx;
+    const len = Math.floor(ctx.sampleRate * seconds);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  // Dua nada hampir sama dan satu nada tritone: terdengar seperti sesuatu yang bergumam di bawah tanah
+  _startDrone() {
+    const ctx = this.ctx;
+    this.droneFilter = ctx.createBiquadFilter();
+    this.droneFilter.type = 'lowpass';
+    this.droneFilter.frequency.value = 260;
+    this.droneFilter.Q.value = 4;
+    this.droneGain = ctx.createGain();
+    this.droneGain.gain.value = 0.0;
+    this.droneFilter.connect(this.droneGain);
+    this.droneGain.connect(this.master);
+    this.droneGain.connect(this.reverb);
+
+    this.droneOscs = [];
+    [[55, 'sawtooth'], [55.7, 'sawtooth'], [77.8, 'triangle']].forEach(([f, type]) => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.value = type === 'triangle' ? 0.25 : 0.35;
+      o.connect(g);
+      g.connect(this.droneFilter);
+      o.start();
+      this.droneOscs.push(o);
+    });
+
+    // Filter bergerak pelan, seperti napas yang tidak stabil
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 0.07;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 120;
+    lfo.connect(lfoGain);
+    lfoGain.connect(this.droneFilter.frequency);
+    lfo.start();
+  }
+
+  _startWind() {
+    const ctx = this.ctx;
+    const src = ctx.createBufferSource();
+    src.buffer = this._noiseBuffer(4);
+    src.loop = true;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 380;
+    bp.Q.value = 0.6;
+    this.windGain = ctx.createGain();
+    this.windGain.gain.value = 0.05;
+    src.connect(bp);
+    bp.connect(this.windGain);
+    this.windGain.connect(this.master);
+    src.start();
+  }
+
+  // Dipanggil tiap frame. bpm = detak jantung yang diinginkan (0 untuk diam).
+  update(dt, bpm) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    const tension = this.tension;
+    // Drone semakin tebal dan gelap saat tegang
+    this.droneGain.gain.setTargetAtTime(0.05 + tension * 0.16, t, 0.6);
+    this.droneFilter.Q.setTargetAtTime(4 + tension * 6, t, 0.6);
+    this.windGain.gain.setTargetAtTime(0.04 + tension * 0.05, t, 1.2);
+
+    if (bpm > 0) {
+      this.heartT -= dt;
+      if (this.heartT <= 0) {
+        this.heartT = 60 / bpm;
+        this._thump(0, 0.5);
+        this._thump(0.2, 0.32);
+      }
+    }
+
+    this.musicT -= dt;
+    if (this.musicT <= 0) {
+      this.musicT = 7 + Math.random() * 9 - tension * 3;
+      if (Math.random() < 0.8 - tension * 0.4) this.musicBox();
+    }
+  }
+
+  _thump(delay, vol) {
+    const ctx = this.ctx;
+    const t = ctx.currentTime + delay;
+    const o = ctx.createOscillator();
+    o.frequency.setValueAtTime(70, t);
+    o.frequency.exponentialRampToValueAtTime(38, t + 0.18);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + 0.35);
+  }
+
+  _out(node, pan, wet) {
+    const p = this.ctx.createStereoPanner();
+    p.pan.value = Math.max(-1, Math.min(1, pan || 0));
+    node.connect(p);
+    p.connect(this.master);
+    if (wet) {
+      const s = this.ctx.createGain();
+      s.gain.value = wet;
+      p.connect(s);
+      s.connect(this.reverb);
+    }
+  }
+
+  // Dentang kotak musik yang tidak selaras (dua nada dari skala yang sengaja meleset)
+  musicBox() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const base = [392, 415.3, 466.2, 523.3, 587.3, 622.3];
+    const count = 3 + Math.floor(Math.random() * 3);
+    const pan = (Math.random() * 2 - 1) * 0.6;
+    for (let i = 0; i < count; i++) {
+      const t = ctx.currentTime + i * (0.28 + Math.random() * 0.12);
+      const f = base[Math.floor(Math.random() * base.length)];
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.06, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+      o.connect(g);
+      this._out(g, pan, 0.6);
+      g.connect(this.delay);
+      o.start(t);
+      o.stop(t + 1.5);
+    }
+  }
+
+  // Lonceng tanpa tenang, untuk akhir cerita dan penanda bahaya
+  bell(freq, vol, decay, pan) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    [1, 2.01, 3.4].forEach((m, i) => {
+      const o = ctx.createOscillator();
+      o.frequency.value = freq * m;
+      const g = ctx.createGain();
+      const v = vol / (i + 1.5);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+      o.connect(g);
+      this._out(g, pan || 0, 0.7);
+      o.start(t);
+      o.stop(t + decay + 0.1);
+    });
+  }
+
+  // Bisikan: noise yang disaring dan naik turun, seolah lewat di sebelah telinga
+  whisper(pan) {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this._noiseBuffer(2);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 6;
+    bp.frequency.setValueAtTime(1100, t);
+    bp.frequency.linearRampToValueAtTime(2600, t + 0.9);
+    bp.frequency.linearRampToValueAtTime(1300, t + 1.8);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.22, t + 0.5);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.9);
+    src.connect(bp);
+    bp.connect(g);
+    this._out(g, pan || 0, 0.4);
+    src.start(t);
+    src.stop(t + 2);
+  }
+
+  // Pintu atau kayu tua berderit
+  creak() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(90, t);
+    o.frequency.linearRampToValueAtTime(150, t + 1.1);
+    o.frequency.linearRampToValueAtTime(110, t + 1.3);
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 700;
+    bp.Q.value = 9;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.16, t + 0.25);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
+    o.connect(bp);
+    bp.connect(g);
+    this._out(g, 0.3, 0.2);
+    o.start(t);
+    o.stop(t + 1.5);
+  }
+
+  // Pintu dibanting
+  slam() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this._noiseBuffer(0.6);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 320;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.8, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
+    src.connect(lp);
+    lp.connect(g);
+    g.connect(this.master);
+    g.connect(this.reverb);
+    src.start(t);
+    src.stop(t + 0.6);
+    this._thump(0, 0.9);
+  }
+
+  // Jeritan melengking, dipakai saat hantu terlihat untuk pertama kali
+  screech() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(700, t);
+    o.frequency.exponentialRampToValueAtTime(1900, t + 0.6);
+    o.frequency.exponentialRampToValueAtTime(900, t + 1.1);
+    const vib = ctx.createOscillator();
+    vib.frequency.value = 9;
+    const vibG = ctx.createGain();
+    vibG.gain.value = 60;
+    vib.connect(vibG);
+    vibG.connect(o.frequency);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.13, t + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.2);
+    o.connect(g);
+    this._out(g, 0, 0.5);
+    o.start(t);
+    vib.start(t);
+    o.stop(t + 1.3);
+    vib.stop(t + 1.3);
+  }
+
+  // Dengung dissonan singkat, misalnya saat kau melewati tempat keramat
+  sting() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    [196, 207.6, 293.7].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.09 / (i + 1), t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+      o.connect(g);
+      this._out(g, 0, 0.6);
+      o.start(t);
+      o.stop(t + 1.9);
+    });
+  }
+
+  // Senter UV: bunyi berdenging halus
+  uvBeam() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(1180, t);
+    o.frequency.linearRampToValueAtTime(1020, t + 0.12);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.03, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + 0.16);
+  }
+
+  // Benda diambil
+  chime() {
+    if (!this.ctx) return;
+    this.bell(880, 0.12, 1.2, 0);
+  }
+
+  click() {
+    if (!this.ctx) return;
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const o = ctx.createOscillator();
+    o.type = 'square';
+    o.frequency.value = 1000;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.04, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    o.connect(g);
+    g.connect(this.master);
+    o.start(t);
+    o.stop(t + 0.05);
+  }
+
+  // Jumpscare: hentakan keras, jeritan, dan lantai bergetar
+  jumpscare() {
+    if (!this.ctx) return;
+    this.slam();
+    this.screech();
+    const ctx = this.ctx;
+    const t = ctx.currentTime;
+    const src = ctx.createBufferSource();
+    src.buffer = this._noiseBuffer(0.25);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.9, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    src.connect(g);
+    g.connect(this.master);
+    src.start(t);
+    src.stop(t + 0.25);
+  }
+
+  // Akhir cerita: nada sedih, cerah, atau lonceng berat untuk tumbal
+  ending(kind) {
+    if (!this.ctx) return;
+    if (kind === 'happy') {
+      [523.3, 659.3, 784].forEach((f, i) => setTimeout(() => this.bell(f, 0.14, 2.6, 0), i * 380));
+    } else if (kind === 'tumbal') {
+      [0, 1, 2].forEach(i => setTimeout(() => this.bell(110, 0.9, 5, 0), i * 1400));
+    } else {
+      [392, 349.2, 293.7].forEach((f, i) => setTimeout(() => this.bell(f, 0.1, 3.2, 0), i * 700));
+    }
+  }
+}
+
+const audioSys = new SoundEngine();
+
+</script>
+<script>
+// ===== js/settings.js =====
+// Pengaturan pemain: sensitivitas, kesulitan, mode ringan, dan efek kejutan.
+// Disimpan di localStorage bila tersedia. Jika tidak, pengaturan tetap berjalan untuk sesi ini.
+
+const Settings = (() => {
+  const KEY = 'mistery-pasirranji-settings';
+  const DEFAULTS = { sens: 100, difficulty: 'normal', reduce: false, scare: true, seenGuide: false };
+  const DIFF = {
+    easy: { speed: 0.8, damage: 0.6, drain: 0.75 },
+    normal: { speed: 1, damage: 1, drain: 1 }
+  };
+
+  let data = { ...DEFAULTS };
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) data = { ...DEFAULTS, ...JSON.parse(raw) };
+  } catch (e) { /* abaikan: pakai nilai bawaan */ }
+
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* abaikan */ }
+  }
+
+  const el = {
+    overlay: document.getElementById('settings'),
+    sens: document.getElementById('sens'),
+    sensVal: document.getElementById('sens-val'),
+    diffBtns: document.querySelectorAll('[data-diff]'),
+    reduce: document.getElementById('reduce-toggle'),
+    scare: document.getElementById('scare-toggle'),
+    close: document.getElementById('settings-close')
+  };
+
+  function refreshUI() {
+    el.sens.value = data.sens;
+    el.sensVal.textContent = data.sens + '%';
+    el.diffBtns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.diff === data.difficulty)));
+    el.reduce.setAttribute('aria-pressed', String(data.reduce));
+    el.reduce.textContent = data.reduce ? 'Nyala' : 'Mati';
+    el.scare.setAttribute('aria-pressed', String(data.scare));
+    el.scare.textContent = data.scare ? 'Nyala' : 'Mati';
+  }
+
+  el.sens.addEventListener('input', () => {
+    data.sens = Number(el.sens.value);
+    el.sensVal.textContent = data.sens + '%';
+    save();
+  });
+  el.diffBtns.forEach(b => b.addEventListener('click', () => {
+    data.difficulty = b.dataset.diff;
+    refreshUI();
+    save();
+  }));
+  el.reduce.addEventListener('click', () => { data.reduce = !data.reduce; refreshUI(); save(); });
+  el.scare.addEventListener('click', () => { data.scare = !data.scare; refreshUI(); save(); });
+
+  let onClose = null;
+  function open(returnFn) {
+    onClose = returnFn || null;
+    refreshUI();
+    el.overlay.hidden = false;
+    el.close.focus();
+  }
+  function closeOverlay() {
+    el.overlay.hidden = true;
+    const cb = onClose;
+    onClose = null;
+    if (cb) cb();
+  }
+  el.close.addEventListener('click', closeOverlay);
+
+  function markGuideSeen() {
+    data.seenGuide = true;
+    save();
+  }
+
+  return {
+    open,
+    markGuideSeen,
+    seenGuide: () => !!data.seenGuide,
+    sensMul: () => data.sens / 100,
+    diff: () => DIFF[data.difficulty] || DIFF.normal,
+    reduce: () => !!data.reduce,
+    scare: () => !!data.scare
+  };
+})();
+
+</script>
+<script>
+// ===== js/world.js =====
+// Peta Kampung Pasirranji: jalan utama, rumah-rumah warga, Rumah Pasirranji, kuburan, dan Ruang Segel.
+// Koordinat dalam meter. Jalan utama berada di x dari -3 sampai 3, membentang dari gerbang (z = 26) ke utara.
+
+const WALL_H = 3.2;
+const WALL_T = 0.3;
+const ARENA = { x1: -27, x2: 27, z1: -27, z2: 27 };
+
+// Rumah warga. door = sisi tempat pintu (n, s, e, w). Pintu dipasang di tengah sisi itu.
+const HOUSES = [
+  { id: 'balai', cx: -9, cz: 3, w: 7, d: 6, door: 'e' },       // Balai RT (Abah Sarkum)
+  { id: 'titi', cx: 9, cz: -1, w: 7, d: 6, door: 'w' },        // Rumah Bi Titi
+  { id: 'kosong1', cx: 9, cz: 12, w: 6, d: 5, door: 'w' },
+  { id: 'kosong2', cx: -10, cz: 16, w: 6, d: 5, door: 'e' },
+  { id: 'pasirranji', cx: 0, cz: -16, w: 9, d: 7, door: 's' }   // Rumah Pasirranji (rumah Ayu)
+];
+
+const WORLD_DATA = {
+  segelDoorZ: [-22.8, -21.2],   // celah pintu Ruang Segel
+  kamarZ: -16.15,              // dinding pemisah ruang tamu dan kamar di Rumah Pasirranji
+  hideSpot: { x: 3.7, z: -18.8, yaw: 0 }, // lemari di kamar
+  tombs: [[-18, -12], [-21, -14], [-24, -11], [-19, -9], [-25, -16], [-22, -7.5], [-16.5, -15], [-26, -8.5]],
+  trees: [[-14, 2], [15, 12], [16, -7], [-15, -4]],
+  lamps: [
+    { x: 2.8, z: 21, y: 2.6, base: 1.3 },
+    { x: -2.8, z: 11, y: 2.6, base: 1.1 },
+    { x: 2.8, z: -1, y: 2.6, base: 1.1 },
+    { x: -2.8, z: -8, y: 2.6, base: 1.0 },
+    { x: 0, z: -14.2, y: 2.4, base: 1.0 },
+    { x: -19, z: -21.8, y: 2.2, base: 0.8 }
+  ],
+  items: [
+    { id: 'note1', kind: 'note', title: 'Catatan Ayu #1', pos: [-2.6, 0.92, -13.6] },
+    { id: 'note2', kind: 'note', title: 'Catatan Ayu #2', pos: [-2.4, 0.62, -18.2] },
+    { id: 'note3', kind: 'note', title: 'Catatan Ayu #3', pos: [-19.0, 1.02, -22.2] },
+    { id: 'bat1', kind: 'battery', title: 'Baterai', pos: [10.5, 0.35, 10.9] },
+    { id: 'bat2', kind: 'battery', title: 'Baterai', pos: [-10.6, 0.35, 4.6] },
+    { id: 'bat3', kind: 'battery', title: 'Baterai', pos: [-23.8, 0.3, -12.5] },
+    { id: 'bat4', kind: 'battery', title: 'Baterai', pos: [-1.5, 0.3, 21] }
+  ],
+  sigils: [[-19, -22.2], [0.2, -14.2], [-20.6, -16.5], [-14, -12], [14, -6], [-4, 12]]
+};
+
+const World = {
+  scene: null, camera: null, renderer: null, flashlight: null,
+  group: null, colliders: [], lamps: [], items: [], sigils: [], npcs: [],
+  doorPivot: null, doorCollider: null, hideSpot: WORLD_DATA.hideSpot, ayu: null
+};
+
+function rnd(a, b) { return a + Math.random() * (b - a); }
+
+function makeCanvasTexture(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  return t;
+}
+
+function speckle(ctx, w, h, n, colors, rmin, rmax) {
+  for (let i = 0; i < n; i++) {
+    ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+    ctx.beginPath();
+    ctx.arc(Math.random() * w, Math.random() * h, rnd(rmin, rmax), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// Tekstur prosedural: tanah, dinding plester retak, batu jalan, dan segel UV
+function makeTextures() {
+  return {
+    ground: makeCanvasTexture(256, 256, (ctx, w, h) => {
+      ctx.fillStyle = '#17150f';
+      ctx.fillRect(0, 0, w, h);
+      speckle(ctx, w, h, 900, ['#0e0d09', '#22201a', '#2c2a1e', '#1b2316'], 0.6, 2.2);
+    }),
+    wall: makeCanvasTexture(256, 256, (ctx, w, h) => {
+      ctx.fillStyle = '#2b251f';
+      ctx.fillRect(0, 0, w, h);
+      speckle(ctx, w, h, 260, ['#231e19', '#352e26', '#1e1915'], 1, 5);
+      ctx.strokeStyle = 'rgba(10,8,6,0.55)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 6; i++) {
+        ctx.beginPath();
+        let x = Math.random() * w, y = Math.random() * h;
+        ctx.moveTo(x, y);
+        for (let k = 0; k < 6; k++) { x += rnd(-14, 14); y += rnd(4, 18); ctx.lineTo(x, y); }
+        ctx.stroke();
+      }
+    }),
+    path: makeCanvasTexture(256, 256, (ctx, w, h) => {
+      ctx.fillStyle = '#26221b';
+      ctx.fillRect(0, 0, w, h);
+      for (let i = 0; i < 120; i++) {
+        ctx.fillStyle = Math.random() < 0.5 ? '#302a21' : '#1c1913';
+        ctx.beginPath();
+        ctx.ellipse(Math.random() * w, Math.random() * h, rnd(4, 10), rnd(3, 7), 0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }),
+    sigil: makeCanvasTexture(256, 256, (ctx, w, h) => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = '#a855f7';
+      ctx.shadowColor = '#a855f7';
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.arc(128, 128, 110, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(128, 128, 78, 0, Math.PI * 2); ctx.stroke();
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(128 + Math.cos(a) * 78, 128 + Math.sin(a) * 78);
+        ctx.lineTo(128 + Math.cos(a + 1.1) * 110, 128 + Math.sin(a + 1.1) * 110);
+        ctx.stroke();
+      }
+    })
+  };
+}
+
+function addBox(x, y, z, w, h, d, mat, parent) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  (parent || World.group).add(m);
+  return m;
+}
+
+// Tambah dinding fisik: kotak tabrakan dan mesh yang sama
+function addWall(x1, x2, z1, z2, h, mat) {
+  World.colliders.push({ x1, x2, z1, z2 });
+  return addBox((x1 + x2) / 2, (h || WALL_H) / 2, (z1 + z2) / 2, x2 - x1, h || WALL_H, z2 - z1, mat);
+}
+
+// Tambah benda dekoratif tanpa tabrakan
+function addDecor(x, y, z, w, h, d, mat) {
+  return addBox(x, y, z, w, h, d, mat);
+}
+
+// Rumah dengan empat dinding, satu celah pintu, dan atap datar
+function buildHouse(h, mats) {
+  const x1 = h.cx - h.w / 2, x2 = h.cx + h.w / 2;
+  const z1 = h.cz - h.d / 2, z2 = h.cz + h.d / 2;
+  const T = WALL_T / 2;
+  const gap = 1.6;
+
+  // Dinding utara dan selatan (sepanjang x)
+  const splitX = (zc, doorSide) => {
+    if (doorSide === 'n' || doorSide === 's') {
+      if ((doorSide === 'n' && zc === z1) || (doorSide === 's' && zc === z2)) {
+        const c = h.cx;
+        addWall(x1, c - gap / 2, zc - T, zc + T, WALL_H, mats.wall);
+        addWall(c + gap / 2, x2, zc - T, zc + T, WALL_H, mats.wall);
+        return;
+      }
+    }
+    addWall(x1, x2, zc - T, zc + T, WALL_H, mats.wall);
+  };
+  splitX(z1, h.door);
+  splitX(z2, h.door);
+
+  // Dinding barat dan timur (sepanjang z)
+  const splitZ = (xc, side) => {
+    if ((side === 'w' && xc === x1 && h.door === 'w') || (side === 'e' && xc === x2 && h.door === 'e')) {
+      const c = h.cz;
+      addWall(xc - T, xc + T, z1, c - gap / 2, WALL_H, mats.wall);
+      addWall(xc - T, xc + T, c + gap / 2, z2, WALL_H, mats.wall);
+      return;
+    }
+    addWall(xc - T, xc + T, z1, z2, WALL_H, mats.wall);
+  };
+  splitZ(x1, 'w');
+  splitZ(x2, 'e');
+
+  // Atap datar
+  addBox((x1 + x2) / 2, WALL_H + 0.1, (z1 + z2) / 2, x2 - x1 + 0.4, 0.2, z2 - z1 + 0.4, mats.roof);
+}
+
+// Manusia sederhana untuk NPC: badan, kepala, dan atribut sesuai peran
+function buildHuman(opts) {
+  const g = new THREE.Group();
+  const cloth = new THREE.MeshStandardMaterial({ color: opts.cloth, roughness: 0.95 });
+  const skin = new THREE.MeshStandardMaterial({ color: opts.skin || 0x9b8772, roughness: 0.9 });
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.3, 1.2, 10), cloth);
+  body.position.y = 0.9;
+  g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 12, 12), skin);
+  head.position.y = 1.72;
+  g.add(head);
+  if (opts.hat) {
+    const hat = new THREE.Mesh(
+      new THREE.ConeGeometry(0.28, 0.18, 12),
+      new THREE.MeshStandardMaterial({ color: opts.hat, roughness: 1 })
+    );
+    hat.position.y = 1.95;
+    g.add(hat);
+  }
+  if (opts.hair) {
+    const hair = new THREE.Mesh(
+      new THREE.SphereGeometry(0.19, 12, 12, 0, Math.PI * 2, 0, Math.PI * 0.6),
+      new THREE.MeshBasicMaterial({ color: opts.hair })
+    );
+    hair.position.y = 1.76;
+    g.add(hair);
+  }
+  if (opts.lantern) {
+    const l = new THREE.Mesh(
+      new THREE.SphereGeometry(0.09, 10, 10),
+      new THREE.MeshBasicMaterial({ color: 0xffb35c })
+    );
+    l.position.set(0.36, 0.7, 0.1);
+    g.add(l);
+  }
+  return g;
+}
+
+function makeItemMesh(kind) {
+  if (kind === 'note') {
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.24, 0.32),
+      new THREE.MeshStandardMaterial({ color: 0xd8ccb0, emissive: 0x2a2316, roughness: 1, side: THREE.DoubleSide })
+    );
+    m.rotation.x = -Math.PI / 2;
+    return m;
+  }
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.2, 0.08), new THREE.MeshStandardMaterial({ color: 0x222222 }));
+  const cap = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.04, 0.06), new THREE.MeshStandardMaterial({ color: 0xe0b020, emissive: 0x3a2a00 }));
+  cap.position.y = 0.12;
+  g.add(body);
+  g.add(cap);
+  return g;
+}
+
+// Pagar keliling kampung dengan celah gerbang di sisi selatan
+function buildPerimeter(mat) {
+  const P = 27.4, T = 0.4, H = 1.4;
+  addWall(-P - T / 2, -P + T / 2, -P, P, H, mat);
+  addWall(P - T / 2, P + T / 2, -P, P, H, mat);
+  addWall(-P, P, -P - T / 2, -P + T / 2, H, mat);
+  addWall(-P, -2.8, P - T / 2, P + T / 2, H, mat);
+  addWall(2.8, P, P - T / 2, P + T / 2, H, mat);
+  addWall(-3.4, -2.6, 25.6, 26.4, 2.0, mat); // tiang gerbang kiri
+  addWall(2.6, 3.4, 25.6, 26.4, 2.0, mat);   // tiang gerbang kanan
+}
+
+function buildWorld() {
+  if (World.group) World.scene.remove(World.group);
+  const tex = World.tex || (World.tex = makeTextures());
+  World.colliders = [];
+  World.items = [];
+  World.lamps = [];
+  World.sigils = [];
+  World.npcs = [];
+  World.group = new THREE.Group();
+  World.scene.add(World.group);
+
+  const mats = {
+    wall: new THREE.MeshStandardMaterial({ map: tex.wall, roughness: 1 }),
+    roof: new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 1 }),
+    fence: new THREE.MeshStandardMaterial({ color: 0x14100c, roughness: 1 }),
+    stone: new THREE.MeshStandardMaterial({ color: 0x3a3832, roughness: 1 }),
+    wood: new THREE.MeshStandardMaterial({ color: 0x3b2516, roughness: 1 }),
+    leaf: new THREE.MeshStandardMaterial({ color: 0x0c1a10, roughness: 1 }),
+    bone: new THREE.MeshStandardMaterial({ color: 0xcfc6b1, roughness: 0.9 })
+  };
+
+  // Tanah dan jalan
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 60),
+    new THREE.MeshStandardMaterial({ map: tex.ground, roughness: 1 })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0;
+  ground.receiveShadow = true;
+  World.group.add(ground);
+  tex.ground.repeat.set(10, 10);
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(6, 42),
+    new THREE.MeshStandardMaterial({ map: tex.path, roughness: 1 })
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.set(0, 0.01, 7);
+  road.receiveShadow = true;
+  World.group.add(road);
+
+  buildPerimeter(mats.fence);
+
+  HOUSES.forEach(h => buildHouse(h, mats));
+
+  // Dinding pemisah di Rumah Pasirranji: ruang tamu di depan, kamar di belakang
+  const P = HOUSES[4];
+  const pz = WORLD_DATA.kamarZ;
+  addWall(-P.w / 2, -1.0, pz - 0.15, pz + 0.15, WALL_H, mats.wall);
+  addWall(1.0, P.w / 2, pz - 0.15, pz + 0.15, WALL_H, mats.wall);
+
+  // Lemari di kamar (tempat bersembunyi)
+  addWall(3.0, 4.4, -19.4, -18.2, 2.1, mats.wood);
+  // Meja di ruang tamu
+  addDecor(-2.6, 0.45, -13.6, 1.4, 0.9, 0.7, mats.wood);
+  // Ranjang di kamar
+  addDecor(-2.4, 0.3, -18.2, 1.6, 0.6, 2.2, mats.wood);
+
+  // Balai RT: meja panjang
+  addDecor(-9.5, 0.45, 3.0, 2.2, 0.9, 0.8, mats.wood);
+
+  // Pos ronda dengan bangku
+  World.colliders.push({ x1: 3.6, x2: 5.4, z1: 11.6, z2: 12.4 });
+  addDecor(4.5, 0.3, 12.0, 1.8, 0.6, 0.8, mats.wood);
+  addDecor(3.8, 1.6, 11.2, 0.12, 2.0, 0.12, mats.wood);
+  addDecor(5.2, 1.6, 11.2, 0.12, 2.0, 0.12, mats.wood);
+  addDecor(3.8, 1.6, 12.8, 0.12, 2.0, 0.12, mats.wood);
+  addDecor(5.2, 1.6, 12.8, 0.12, 2.0, 0.12, mats.wood);
+  addDecor(4.5, 2.7, 12.0, 2.2, 0.12, 2.0, mats.wood);
+
+  // Gerbang: dua tiang sudah dibuat di buildPerimeter; tambahkan papan nama
+  addDecor(0, 2.2, 26.45, 2.6, 0.5, 0.12, mats.wood);
+
+  // Kuburan dan Ruang Segel
+  WORLD_DATA.tombs.forEach(([x, z]) => {
+    addWall(x - 0.25, x + 0.25, z - 0.1, z + 0.1, 0.9, mats.stone);
+  });
+  // Ruang Segel: bangunan kecil dengan celah pintu di sisi timur
+  const seg = { cx: -19, cz: -22, w: 6, d: 5, door: 'e' };
+  buildHouse(seg, mats);
+  const d = WORLD_DATA.segelDoorZ;
+  World.doorPivot = new THREE.Group();
+  World.doorPivot.position.set(-16, 0, d[0]);
+  World.group.add(World.doorPivot);
+  addBox(0, 1.1, (d[1] - d[0]) / 2, 0.12, 2.2, d[1] - d[0] - 0.02, mats.wood, World.doorPivot);
+  World.doorCollider = { x1: -16.2, x2: -15.8, z1: d[0], z2: d[1] };
+  World.colliders.push(World.doorCollider);
+
+  // Altar di Ruang Segel
+  addDecor(-19, 0.5, -22.2, 1.4, 1.0, 0.8, mats.stone);
+  // Kerangkeng Ayu (terlihat setelah pintu dibuka)
+  World.ayu = new THREE.Group();
+  World.ayu.position.set(-18.2, 0, -23.2);
+  World.ayu.visible = false;
+  const bar = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, metalness: 0.4, roughness: 0.6 });
+  for (let i = -2; i <= 2; i++) addBox(i * 0.22, 1.0, 0, 0.04, 2.0, 0.04, bar, World.ayu);
+  const ayuBody = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 1.0, 10),
+    new THREE.MeshStandardMaterial({ color: 0xc9c4bb, roughness: 1 }));
+  ayuBody.position.y = 0.7;
+  World.ayu.add(ayuBody);
+  const ayuHead = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 12), new THREE.MeshStandardMaterial({ color: 0xd9cbb5 }));
+  ayuHead.position.y = 1.36;
+  World.ayu.add(ayuHead);
+  World.group.add(World.ayu);
+
+  // Sumur tua
+  World.colliders.push({ x1: 13.3, x2: 14.7, z1: -20.7, z2: -19.3 });
+  const well = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.9, 14, 1, true), mats.stone);
+  well.position.set(14, 0.45, -20);
+  World.group.add(well);
+
+  // Pohon beringin
+  WORLD_DATA.trees.forEach(([x, z]) => {
+    World.colliders.push({ x1: x - 0.45, x2: x + 0.45, z1: z - 0.45, z2: z + 0.45 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.42, 3.2, 8), mats.wood);
+    trunk.position.set(x, 1.6, z);
+    World.group.add(trunk);
+    const crown = new THREE.Mesh(new THREE.SphereGeometry(2.1, 12, 10), mats.leaf);
+    crown.position.set(x, 3.6, z);
+    crown.scale.y = 0.8;
+    World.group.add(crown);
+  });
+
+  // NPC
+  const kong = buildHuman({ cloth: 0x2f3d2a, hat: 0x5a3c1e, hair: 0xd8d4cc, lantern: true, skin: 0x8c7258 });
+  kong.position.set(4.5, 0, 11.0);
+  kong.rotation.y = -Math.PI / 2;
+  World.group.add(kong);
+  const sarkum = buildHuman({ cloth: 0xc9c4b8, hat: 0x111111, hair: 0x2a2a2a, skin: 0x8c7258 });
+  sarkum.position.set(-8.4, 0, 3.0);
+  sarkum.rotation.y = Math.PI / 2;
+  World.group.add(sarkum);
+  const titi = buildHuman({ cloth: 0x5a1212, hair: 0x080808, skin: 0xa08a70 });
+  titi.position.set(8.4, 0, -1.0);
+  titi.rotation.y = -Math.PI / 2;
+  World.group.add(titi);
+  World.npcs = [
+    { id: 'ruop', name: 'Kong Ruop', x: 4.5, z: 10.9, mesh: kong },
+    { id: 'sarkum', name: 'Abah Sarkum', x: -8.4, z: 3.0, mesh: sarkum },
+    { id: 'titi', name: 'Bi Titi', x: 8.4, z: -1.0, mesh: titi }
+  ];
+
+  // Lampu jalan dan lampu rumah
+  WORLD_DATA.lamps.forEach(spec => {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.06, spec.y, 6), mats.wood);
+    pole.position.set(spec.x, spec.y / 2, spec.z);
+    World.group.add(pole);
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), new THREE.MeshBasicMaterial({ color: 0xffb35c }));
+    bulb.position.set(spec.x, spec.y, spec.z);
+    World.group.add(bulb);
+    const light = new THREE.PointLight(0xffa64d, spec.base, 9, 2);
+    light.position.set(spec.x, spec.y - 0.2, spec.z);
+    World.group.add(light);
+    World.lamps.push({ light, base: spec.base, flicker: 0 });
+  });
+
+  // Benda yang bisa diambil
+  WORLD_DATA.items.forEach(spec => {
+    const mesh = makeItemMesh(spec.kind);
+    mesh.position.set(spec.pos[0], spec.pos[1], spec.pos[2]);
+    World.group.add(mesh);
+    World.items.push({ id: spec.id, kind: spec.kind, title: spec.title, pos: spec.pos, mesh, collected: false });
+  });
+
+  // Simbol UV: hanya terlihat saat mode UV menyala
+  const sigilMat = new THREE.MeshBasicMaterial({ map: tex.sigil, transparent: true, depthWrite: false });
+  WORLD_DATA.sigils.forEach(([x, z]) => {
+    const s = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.8), sigilMat);
+    s.rotation.x = -Math.PI / 2;
+    s.position.set(x, 0.03, z);
+    s.visible = false;
+    World.group.add(s);
+    World.sigils.push(s);
+  });
+
+  // Batas tanah dan pagar sudah dibuat di buildPerimeter
+  World.hideSpot = WORLD_DATA.hideSpot;
+}
+
+function createRenderer(container) {
+  World.scene = new THREE.Scene();
+  World.scene.background = new THREE.Color(0x030405);
+  World.scene.fog = new THREE.FogExp2(0x07090c, 0.055);
+
+  World.camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.05, 80);
+  World.camera.rotation.order = 'YXZ';
+
+  World.renderer = new THREE.WebGLRenderer({ antialias: true });
+  World.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  World.renderer.setSize(window.innerWidth, window.innerHeight);
+  World.renderer.shadowMap.enabled = true;
+  World.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(World.renderer.domElement);
+
+  // Cahaya redup dari bulan yang tertutup awan
+  World.scene.add(new THREE.AmbientLight(0x1a2030, 0.55));
+  const moon = new THREE.DirectionalLight(0x6f7fa0, 0.22);
+  moon.position.set(-8, 14, 6);
+  World.scene.add(moon);
+
+  // Senter tangan
+  World.flashlight = new THREE.SpotLight(0xfff1dc, 2.5, 22, Math.PI / 7, 0.45, 1.6);
+  World.flashlight.castShadow = true;
+  World.flashlight.shadow.mapSize.set(1024, 1024);
+  World.flashlight.shadow.camera.near = 0.1;
+  World.flashlight.shadow.camera.far = 22;
+  World.scene.add(World.flashlight);
+  World.scene.add(World.flashlight.target);
+}
+
+</script>
+<script>
+// ===== js/story.js =====
+// Cerita: naskah adegan, kotak dialog dengan efek mengetik, dan penanda bab serta tujuan.
+
+// Naskah. Setiap adegan adalah daftar [pembicara, teks].
+// Pembicara "Catatan Ayu #n" dipakai di jurnal. Baris lain dianggap percakapan.
+const BEATS = {
+  intro: [
+    ['Bima', 'Tiga minggu tidak ada kabar dari Ayu. Lalu surat terakhirnya datang, tulisannya gemetar, dengan satu nama di bawah alamat: Pasirranji.'],
+    ['Bima', 'Orang kota bilang kampung itu sudah lama kosong. Tapi gerbangnya masih berdiri, dan lampu jalannya masih menyala. Padahal tidak ada suara orang di sini.'],
+    ['Bisikan', '...jangan cari dia, Kak. Dia bukan Ayu yang kau kenal lagi.']
+  ],
+
+  // Kong Ruop: kakek di pos ronda. Memberi informasi awal dan senter UV.
+  ruop1: [
+    ['Kong Ruop', 'Jangan berdiri di tengah jalan malam-malam begini. Kau tamu dari kota? Ayu juga duduk di bangku ini, bertanya-tanya soal rumah di ujung jalan.'],
+    ['Kong Ruop', 'Dengar baik-baik. Di kuburan tua sana ada yang dikurung. Warga menyebutnya SCP 705, karena tidak ada yang berani menyebut namanya. Dia keluar kalau malam sudah larut dan ada yang berjalan sendirian.'],
+    ['Bima', 'Bagaimana kalau aku harus menghadapinya?'],
+    ['Kong Ruop', 'Ini. Senter ini punya lampu ungu. Dia benci cahaya itu. Setelah itu temui Abah Sarkum di balai RT, dia yang paling tahu soal segel.'],
+    ['Catatan', 'Kau mendapat Senter UV. Tekan R untuk mengganti mode.']
+  ],
+  ruop2: [
+    ['Kong Ruop', 'Abah Sarkum ada di balai RT, rumah dengan pagar hijau di sebelah kiri jalan. Jangan lupa bawa senter itu. Malam ini lebih panjang dari biasanya.']
+  ],
+
+  // Abah Sarkum: ketua RT. Memberi jimat dan petunjuk.
+  sarkum1: [
+    ['Abah Sarkum', 'Aku Sarkum, ketua RT di sini. Empat puluh tahun aku menjaga segel itu. Ayu datang kepadaku juga, minta tolong, lalu hilang sebelum sempat kembali.'],
+    ['Abah Sarkum', 'Ambil jimat ini. Jimat Pasirranji. Kalau kau menemukan Ayu di ruang segel, jimat ini bisa membuka segel dari dalam. Jangan kau pakai sembarangan.'],
+    ['Abah Sarkum', 'Rumah Ayu ada di ujung jalan. Catatannya masih di sana. Kunci Ruang Segel dipegang Bi Titi, rumah di sebelah kanan jalan. Dia sudah lama menyimpannya.'],
+    ['Catatan', 'Kau mendapat Jimat Pasirranji.']
+  ],
+  sarkum2: [
+    ['Abah Sarkum', 'Cepatlah. Setiap malam SCP 705 makin kuat. Dan jangan pernah menoleh ke arah sumur kalau ada yang memanggilmu dari sana.']
+  ],
+
+  // Bi Titi: ibu yang memberi kunci, lalu petunjuk kelam.
+  titi1: [
+    ['Bi Titi', 'Kau adiknya Ayu? Dia sering bercerita tentang kakaknya yang galak.'],
+    ['Bi Titi', 'Ini kuncinya. Kunci Ruang Segel. Aku sudah lama menunggu ada yang berani datang membawanya.'],
+    ['Bi Titi', 'Pergilah ke rumah Pasirranji dulu. Di sana ada catatan yang harus kau baca sebelum kau turun ke segel.'],
+    ['Catatan', 'Kau mendapat Kunci Ruang Segel.']
+  ],
+  titi2: [
+    ['Bi Titi', 'Sudah kau baca catatannya? Ayu tidak lari, Bima. Dia menyerahkan dirinya supaya kampung ini tenang.'],
+    ['Bi Titi', 'Segel itu butuh seseorang di dalamnya. Setiap generasi selalu ada yang bersedia. Ayu bukan yang pertama, dan aku juga pernah berada di tempat itu.'],
+    ['Bi Titi', 'Kalau kau mau, kau bisa menggantikan dia. Biarkan adikmu pulang. Tapi jangan bilang Abah Sarkum. Dia tidak akan mengerti.']
+  ],
+  titi3: [
+    ['Bi Titi', 'Hati-hati di jalan. Kalau kau melihat wajah pucat di jendela, jangan balas tatapannya.']
+  ],
+
+  // Rumah Pasirranji dan adegan kejutan
+  rumahAyu: [
+    ['Bima', 'Rumah Ayu. Pintunya terbuka separuh, seperti ada yang keluar terburu-buru. Di ruang tamu, debu di atas meja tersapu rapi, seolah ada yang sudah menunggu di situ.']
+  ],
+  kamar: [
+    ['Bima', 'Lemari di kamar ini pintunya terbuka sendiri. Tidak ada angin.'],
+    ['Bisikan', 'Kau melihatku? Sekarang kau tidak bisa pergi.']
+  ],
+  locked: [
+    ['Bima', 'Pintu Ruang Segel terkunci rapat. Aku butuh kuncinya. Bi Titi pasti tahu di mana.']
+  ],
+  segelBuka: [
+    ['Bima', 'Pintu segel terbuka dengan erangan panjang. Bau tanah basah dan dupa terbakar keluar dari celahnya.'],
+    ['Ayu', 'Kak...? Jangan turun ke sini sendirian. Dia sudah menungguku.'],
+    ['Bima', 'Ayu! Aku datang untukmu!'],
+    ['Bisikan', 'Dia tidak bisa keluar dengan tangan kosong, Kak.']
+  ],
+
+  // Catatan Ayu (jurnal)
+  note1: [
+    ['Catatan Ayu #1', 'Kak, kalau kau membaca ini berarti aku belum pulang. Warga bilang rumah ini kosong, tapi setiap malam ada yang menyanyi dari kamar. Lagu anak-anak dengan nada yang terhenti di tengah.'],
+    ['Catatan Ayu #1', 'Kong Ruop bilang jangan pernah menoleh ke sumur.']
+  ],
+  note2: [
+    ['Catatan Ayu #2', 'Lemari di kamar itu kukira kosong. Aku salah. Ada sesuatu yang tinggi dan pucat, dengan kepala yang terlalu panjang. Dia memanggil namaku dari dalam.'],
+    ['Catatan Ayu #2', 'Namanya SCP 705. Dia dikurung di bawah kuburan. Segelnya dijaga oleh seseorang yang tidak mau pergi dari kampung ini.']
+  ],
+  note3: [
+    ['Catatan Ayu #3', 'Aku sudah tahu caranya. Jimat Abah Sarkum bisa membuka segel dari dalam, asal aku ada di dekat kerangkeng dan cahaya UV menyala. Tapi segel itu juga meminta sesuatu sebagai gantinya.']
+  ],
+
+  // Ritual di Ruang Segel
+  ritual: [
+    ['Bima', 'Altar ini penuh lilin hitam yang belum habis terbakar. Di lantai, lingkaran segel berdenyut seperti jantung.'],
+    ['SCP 705', 'Kau membuka pintu yang seharusnya tetap tertutup.']
+  ],
+  ritualFight: [
+    ['Bima', 'Dia bangkit! Nyalakan senter UV dan arahkan ke tubuhnya. Tekan R, lalu tahan sampai dia berhenti bergerak!']
+  ],
+  bossDown: [
+    ['Bima', 'Dia menjerit, lalu tubuhnya pecah menjadi debu abu-abu. Segel di lantai berdenyut liar.'],
+    ['Bisikan', 'Sekarang pilih, Kak. Segel ini tidak akan menunggu lama.']
+  ],
+
+  // Tiga akhir cerita
+  endSad: [
+    ['Bima', 'Aku menggores telapak tanganku dan meneteskan darah ke segel. Lingkaran itu menyala, dan Ayu menjerit untuk terakhir kali.'],
+    ['Bima', 'Kerangkeng itu kosong. Abah Sarkum menunduk di halaman tanpa berkata apa-apa.'],
+    ['Bima', 'Pasirranji tenang sejak malam itu. Terlalu tenang. Aku pulang sendirian, dan kadang aku masih mendengar nyanyian itu dari bawah tanah.']
+  ],
+  endHappy: [
+    ['Bima', 'Jimat itu terbakar di tanganku. Cahaya menyapu kerangkeng, dan rantai-rantainya putus satu per satu.'],
+    ['Ayu', 'Kak... kau datang juga.'],
+    ['Bima', 'Kami berlari keluar. Di belakang kami segel itu runtuh, dan nyanyian di bawah tanah berhenti.'],
+    ['Bima', 'Saat fajar, lonceng balai RT berbunyi. Abah Sarkum tersenyum untuk pertama kalinya, dan Ayu masih menggenggam tanganku.']
+  ],
+  endTumbal: [
+    ['Bima', 'Aku melangkah masuk ke lingkaran segel, menggantikan tempat Ayu.'],
+    ['Ayu', 'Jangan, Kak!'],
+    ['Bisikan', 'Terima kasih, Bima. Sekarang kau yang menjaga.'],
+    ['Bima', 'Lonceng balai RT berbunyi tiga kali. Di jendela rumah Bi Titi, sebuah wajah pucat tersenyum padaku. Ayu pulang dengan selamat, dan aku tahu aku tidak akan pernah bisa pergi.']
+  ]
+};
+
+const Story = (() => {
+  const box = document.getElementById('story-box');
+  const speakerEl = document.getElementById('story-speaker');
+  const textEl = document.getElementById('story-text');
+  const nextEl = document.getElementById('story-next');
+  const CPS = 38; // karakter per detik
+
+  let queue = [];
+  let line = null;
+  let pos = 0;
+  let open = false;
+  let onDone = null;
+
+  function showLine(l) {
+    line = l;
+    pos = 0;
+    speakerEl.textContent = l[0];
+    textEl.textContent = '';
+    nextEl.classList.remove('ready');
+  }
+
+  function close() {
+    open = false;
+    box.hidden = true;
+    line = null;
+    const cb = onDone;
+    onDone = null;
+    if (cb) cb();
+  }
+
+  // Mainkan naskah adegan. onFinish dipanggil setelah baris terakhir ditutup.
+  function play(key, onFinish) {
+    const lines = BEATS[key];
+    if (!lines) { if (onFinish) onFinish(); return; }
+    queue = lines.slice(1);
+    onDone = onFinish || null;
+    open = true;
+    box.hidden = false;
+    showLine(lines[0]);
+  }
+
+  function update(dt) {
+    if (!open || !line) return;
+    const full = line[1];
+    if (pos < full.length) {
+      pos = Math.min(full.length, pos + CPS * dt);
+      textEl.textContent = full.slice(0, Math.floor(pos));
+      if (pos >= full.length) nextEl.classList.add('ready');
+    }
+  }
+
+  // Dipanggil oleh E, Enter, Spasi, atau klik kotak.
+  function advance() {
+    if (!open || !line) return;
+    if (pos < line[1].length) {
+      pos = line[1].length;
+      textEl.textContent = line[1];
+      nextEl.classList.add('ready');
+      return;
+    }
+    if (queue.length) {
+      showLine(queue.shift());
+    } else {
+      close();
+    }
+  }
+
+  // Satu baris saja, tanpa antrean naskah
+  function say(speaker, text, onFinish) {
+    queue = [];
+    onDone = onFinish || null;
+    open = true;
+    box.hidden = false;
+    showLine([speaker, text]);
+  }
+
+  function isOpen() { return open; }
+
+  // Membersihkan kotak cerita saat permainan diulang (tanpa memanggil onFinish)
+  function reset() {
+    queue = [];
+    line = null;
+    onDone = null;
+    open = false;
+    box.hidden = true;
+  }
+
+  function setChapter(label) {
+    document.getElementById('chapter-label').textContent = label;
+  }
+
+  function setObjective(text) {
+    document.getElementById('objective-text').textContent = text;
+  }
+
+  let noticeT = 0;
+  function notice(text) {
+    const el = document.getElementById('notice');
+    el.textContent = text;
+    el.hidden = false;
+    el.style.animation = 'none';
+    void el.offsetWidth; // mulai ulang animasi
+    el.style.animation = '';
+    clearTimeout(noticeT);
+    noticeT = setTimeout(() => { el.hidden = true; }, 3300);
+  }
+
+  box.addEventListener('click', advance);
+
+  return { play, say, update, advance, isOpen, reset, setChapter, setObjective, notice };
+})();
+
+</script>
+<script>
+// ===== js/enemy.js =====
+// SCP 705: makhluk tinggi kurus dengan kepala memanjang. Berpatroli, mendengar, melihat, mengejar,
+// mencari, bisa muncul tiba-tiba di belakang pemain, dan di ruang segel menjadi bos.
+
+const GHOST = {
+  RADIUS: 0.4,
+  PATROL: 1.3,
+  SEARCH: 2.2,
+  CHASE: 3.4,
+  BOSS: 2.8,
+  SIGHT: 11,
+  HEAR_WALK: 5,
+  HEAR_SPRINT: 14,
+  LOSE_TIME: 6,
+  ATTACK_DIST: 1.35,
+  STAGGER: 0.5,
+  WARP_MIN: 16,   // detik minimum sebelum ia bisa muncul lagi di belakang pemain
+  WARP_MAX: 26,
+  mult: 1         // pengali kecepatan dari tingkat kesulitan
+};
+
+// Rute patroli di kampung: jalan utama, lewat celah pintu balai, lalu kembali
+const GHOST_ROUTE = [
+  { x: 0, z: 20 }, { x: 0, z: 10 }, { x: 0, z: 0 }, { x: 0, z: -9 },
+  { x: -6, z: -9 }, { x: -6, z: -2 }, { x: -6, z: 8 }, { x: -1, z: 13 },
+  { x: 0, z: 20 }, { x: 0, z: 6 }, { x: 1.5, z: -9 }, { x: -1, z: -9 }
+];
+
+function blockedAt(x, z, cols, r) {
+  for (let i = 0; i < cols.length; i++) {
+    const c = cols[i];
+    if (x > c.x1 - r && x < c.x2 + r && z > c.z1 - r && z < c.z2 + r) return true;
+  }
+  return false;
+}
+
+class Ghost {
+  constructor(scene) {
+    this.group = new THREE.Group();
+    this.x = 0;
+    this.z = -5;
+    this.state = 'dormant';   // dormant | patrol | chase | search | boss
+    this.active = false;
+    this.dead = false;
+    this.hp = 100;
+    this.t = 0;
+    this.stagger = 0;
+    this.lose = 0;
+    this.searchT = 0;
+    this.wp = 0;
+    this.waitT = 0;
+    this.stuckT = 0;
+    this.warpT = GHOST.WARP_MIN;
+    this.lastSeen = { x: 0, z: 0 };
+    this.lastX = 0;
+    this.lastZ = 0;
+    this.yaw = 0;
+    this.eyeMats = [];
+    this._build();
+    this.group.visible = false;
+    scene.add(this.group);
+  }
+
+  _build() {
+    const g = this.group;
+    const skin = new THREE.MeshStandardMaterial({ color: 0xb4afa4, roughness: 0.85 });
+    const cloth = new THREE.MeshStandardMaterial({ color: 0x5d5a55, roughness: 1 });
+    const black = new THREE.MeshBasicMaterial({ color: 0x030303 });
+
+    // Badan kurus dan panjang
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.3, 1.5, 10), cloth);
+    torso.position.y = 1.35;
+    g.add(torso);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.35, 8), skin);
+    neck.position.y = 2.1;
+    g.add(neck);
+
+    // Kepala memanjang seperti telur terbalik
+    this.head = new THREE.Group();
+    this.head.position.y = 2.42;
+    g.add(this.head);
+    const skull = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), skin);
+    skull.scale.set(0.82, 1.55, 0.9);
+    this.head.add(skull);
+
+    // Mulut lebar yang terbelah
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.04, 0.05), black);
+    mouth.position.set(0, -0.2, 0.16);
+    this.head.add(mouth);
+    const mouthSlit = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.18, 0.04), black);
+    mouthSlit.position.set(0, -0.12, 0.17);
+    this.head.add(mouthSlit);
+
+    // Mata merah yang menyala saat mengejar
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff1e1e, transparent: true, opacity: 0.0 });
+    this.eyeMats.push(eyeMat);
+    [-0.075, 0.075].forEach(x => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), eyeMat);
+      eye.position.set(x, 0.05, 0.17);
+      this.head.add(eye);
+    });
+
+    // Rambut panjang hitam menjuntai di belakang dan di sisi wajah
+    const hairBack = new THREE.Mesh(new THREE.BoxGeometry(0.42, 1.6, 0.1), black);
+    hairBack.position.set(0, 0.6, -0.12);
+    this.head.add(hairBack);
+    [-0.18, 0.18].forEach(x => {
+      const strand = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.1, 0.06), black);
+      strand.position.set(x, -0.2, 0.1);
+      this.head.add(strand);
+    });
+
+    // Lengan panjang yang menjuntai sampai lutut
+    this.arms = [];
+    [-0.34, 0.34].forEach(x => {
+      const arm = new THREE.Group();
+      arm.position.set(x, 2.0, 0.05);
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 1.0, 6), skin);
+      upper.position.y = -0.5;
+      arm.add(upper);
+      const hand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.22, 0.05), skin);
+      hand.position.y = -1.1;
+      arm.add(hand);
+      [-0.04, 0, 0.04].forEach(fx => {
+        const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.012, 0.22, 4), skin);
+        finger.position.set(fx, -1.3, 0);
+        arm.add(finger);
+      });
+      g.add(arm);
+      this.arms.push(arm);
+    });
+
+    // Kaki kurus
+    this.legs = [];
+    [-0.13, 0.13].forEach(x => {
+      const leg = new THREE.Group();
+      leg.position.set(x, 0.7, 0);
+      const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 1.4, 6), cloth);
+      shin.position.y = -0.7;
+      leg.add(shin);
+      g.add(leg);
+      this.legs.push(leg);
+    });
+
+    // Cahaya merah samar di sekitar kepala
+    this.light = new THREE.PointLight(0xff2a2a, 0.2, 4, 2);
+    this.light.position.set(0, 2.3, 0.5);
+    g.add(this.light);
+  }
+
+  // Aktifkan hantu di posisi tertentu. Ia mulai berpatroli.
+  activate(x, z) {
+    this.x = x;
+    this.z = z;
+    this.active = true;
+    this.state = 'patrol';
+    this.wp = 0;
+    this.group.visible = true;
+  }
+
+  // Mode bos di ruang segel: selalu mengejar dan tidak bisa kehilangan jejak
+  becomeBoss(x, z) {
+    this.hp = 100;
+    this.x = x;
+    this.z = z;
+    this.state = 'boss';
+    this.active = true;
+    this.group.visible = true;
+  }
+
+  setVisible(v) { this.group.visible = v; }
+
+  // Cahaya UV atau serangan lain. Di mode bos, hantu benar-benar terluka.
+  hurt(amount, dmgReal) {
+    if (this.dead) return false;
+    this.stagger = GHOST.STAGGER;
+    if (dmgReal) this.hp -= amount;
+    if (this.hp <= 0) {
+      this.dead = true;
+      return true;
+    }
+    return false;
+  }
+
+  // Hantu menghilang perlahan
+  dissolve(onDone) {
+    this.dead = true;
+    this._dissolveT = 0;
+    this._onDissolve = onDone;
+  }
+
+  _hasLOS(tx, tz, cols) {
+    const dx = tx - this.x, dz = tz - this.z;
+    const d = Math.hypot(dx, dz);
+    const steps = Math.max(1, Math.ceil(d / 0.2));
+    for (let i = 1; i < steps; i++) {
+      const px = this.x + dx * (i / steps);
+      const pz = this.z + dz * (i / steps);
+      for (let j = 0; j < cols.length; j++) {
+        const c = cols[j];
+        if (px > c.x1 && px < c.x2 && pz > c.z1 && pz < c.z2) return false;
+      }
+    }
+    return true;
+  }
+
+  // Muncul tiba-tiba di belakang pemain: tempat yang dekat, tidak terlihat, dan tidak menabrak dinding
+  warpNear(px, pz, cols) {
+    for (let i = 0; i < 40; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const d = 9 + Math.random() * 5;
+      const x = Math.max(ARENA.x1 + 1, Math.min(ARENA.x2 - 1, px + Math.cos(a) * d));
+      const z = Math.max(ARENA.z1 + 1, Math.min(ARENA.z2 - 1, pz + Math.sin(a) * d));
+      if (blockedAt(x, z, cols, GHOST.RADIUS + 0.2)) continue;
+      const ox = this.x, oz = this.z;
+      this.x = x;
+      this.z = z;
+      const hidden = !this._hasLOS(px, pz, cols);
+      if (hidden) return true;
+      this.x = ox;
+      this.z = oz;
+    }
+    return false;
+  }
+
+  _moveTo(tx, tz, step, cols) {
+    const dx = tx - this.x, dz = tz - this.z;
+    const d = Math.hypot(dx, dz);
+    if (d < 1e-4) return;
+    const s = Math.min(step, d);
+    const nx = this.x + (dx / d) * s;
+    const nz = this.z + (dz / d) * s;
+    // Geser per sumbu supaya hantu tidak macet di sudut dinding
+    if (!blockedAt(nx, this.z, cols, GHOST.RADIUS)) this.x = nx;
+    if (!blockedAt(this.x, nz, cols, GHOST.RADIUS)) this.z = nz;
+    this.x = Math.max(ARENA.x1, Math.min(ARENA.x2, this.x));
+    this.z = Math.max(ARENA.z1, Math.min(ARENA.z2, this.z));
+  }
+
+  _animate(dt, moving, chasing) {
+    this.t += dt;
+    this.group.position.set(this.x, 0.05 + Math.sin(this.t * 2) * 0.05, this.z);
+    // Lengan terangkat saat mengejar, menjuntai saat diam
+    const reach = chasing ? -1.25 : -0.15;
+    this.arms.forEach((a, i) => {
+      a.rotation.x += ((reach + Math.sin(this.t * 1.6 + i) * 0.1) - a.rotation.x) * Math.min(1, dt * 5);
+    });
+    this.legs.forEach((l, i) => {
+      const swing = moving ? Math.sin(this.t * (chasing ? 11 : 6) + i * Math.PI) * 0.45 : 0;
+      l.rotation.x += (swing - l.rotation.x) * Math.min(1, dt * 8);
+    });
+    // Kepala miring pelan, seperti sedang mendengarkan
+    this.head.rotation.z = Math.sin(this.t * 0.7) * 0.18;
+    this.light.intensity = (chasing ? 0.9 : 0.2) + Math.sin(this.t * 9) * 0.05;
+  }
+
+  // Dipanggil tiap frame. pl = { x, z, hidden, moving, sprinting }.
+  // frozen = true saat cerita berjalan: animasi tetap jalan, AI berhenti.
+  // Mengembalikan { spotted, attacking, state }.
+  update(dt, pl, cols, frozen = false) {
+    const out = { spotted: false, attacking: false, state: this.state };
+    if (this.dead) {
+      if (this._dissolveT !== undefined) {
+        this._dissolveT += dt;
+        const k = Math.max(0, 1 - this._dissolveT / 1.4);
+        this.group.scale.setScalar(k);
+        this.eyeMats.forEach(m => { m.opacity = k * 0.8; });
+        if (this._dissolveT >= 1.4) {
+          this.group.visible = false;
+          const cb = this._onDissolve;
+          this._onDissolve = null;
+          if (cb) cb();
+        }
+      }
+      return out;
+    }
+    if (!this.active || frozen) return out;
+
+    const pdx = pl.x - this.x, pdz = pl.z - this.z;
+    const dist = Math.hypot(pdx, pdz);
+    const isChasing = this.state === 'chase' || this.state === 'boss';
+
+    // Mata menyala saat mengejar
+    const eyeTarget = isChasing ? 0.95 : 0.0;
+    this.eyeMats.forEach(m => { m.opacity += (eyeTarget - m.opacity) * Math.min(1, dt * 6); });
+
+    if (this.stagger > 0) {
+      this.stagger -= dt;
+      this._animate(dt, false, isChasing);
+      return out;
+    }
+
+    // Muncul di belakang pemain saat sedang berpatroli, supaya selalu ada rasa diawasi
+    if (this.state === 'patrol' && !pl.hidden) {
+      this.warpT -= dt;
+      if (this.warpT <= 0) {
+        this.warpT = GHOST.WARP_MIN + Math.random() * (GHOST.WARP_MAX - GHOST.WARP_MIN);
+        if (dist > 12 && this.warpNear(pl.x, pl.z, cols)) {
+          out.warped = true;
+          this.lastSeen = { x: pl.x, z: pl.z };
+          this.state = 'search';
+          this.searchT = 4;
+        }
+      }
+    }
+
+    if (this.state !== 'boss') {
+      const seen = !pl.hidden && dist < GHOST.SIGHT && this._hasLOS(pl.x, pl.z, cols);
+      const heard = !pl.hidden && pl.moving && (dist < GHOST.HEAR_WALK || (pl.sprinting && dist < GHOST.HEAR_SPRINT));
+      if (seen || heard) {
+        if (this.state !== 'chase' && seen) out.spotted = true;
+        this.state = 'chase';
+        this.lastSeen = { x: pl.x, z: pl.z };
+        this.lose = GHOST.LOSE_TIME;
+      } else if (this.state === 'chase') {
+        this.lose -= dt;
+        if (this.lose <= 0) { this.state = 'search'; this.searchT = 6; }
+      } else if (this.state === 'search') {
+        this.searchT -= dt;
+        if (this.searchT <= 0) this.state = 'patrol';
+      }
+    }
+
+    let tx = null, tz = null, speed = GHOST.PATROL;
+    if (this.state === 'boss') {
+      tx = pl.x; tz = pl.z; speed = GHOST.BOSS;
+    } else if (this.state === 'chase') {
+      tx = pl.x; tz = pl.z; speed = GHOST.CHASE;
+    } else if (this.state === 'search') {
+      tx = this.lastSeen.x; tz = this.lastSeen.z; speed = GHOST.SEARCH;
+    } else {
+      // Patroli: berjalan ke titik rute, berhenti sebentar di setiap titik
+      const w = GHOST_ROUTE[this.wp];
+      if (this.waitT > 0) {
+        this.waitT -= dt;
+      } else {
+        const wd = Math.hypot(w.x - this.x, w.z - this.z);
+        if (wd < 0.3) {
+          this.wp = (this.wp + 1) % GHOST_ROUTE.length;
+          this.waitT = 2.2;
+          this.stuckT = 0;
+        } else {
+          tx = w.x; tz = w.z;
+          // Lewati titik jika macet terlalu lama
+          const moved = Math.hypot(this.x - this.lastX, this.z - this.lastZ);
+          this.stuckT = moved < 0.01 ? this.stuckT + dt : 0;
+          if (this.stuckT > 1.5) { this.wp = (this.wp + 1) % GHOST_ROUTE.length; this.stuckT = 0; }
+        }
+      }
+    }
+
+    this.lastX = this.x;
+    this.lastZ = this.z;
+    let moving = false;
+    if (tx !== null) {
+      this._moveTo(tx, tz, speed * GHOST.mult * dt, cols);
+      const mdx = tx - this.x, mdz = tz - this.z;
+      moving = Math.hypot(mdx, mdz) > 0.05 || Math.hypot(this.x - this.lastX, this.z - this.lastZ) > 0.001;
+      if (Math.hypot(mdx, mdz) > 0.05) {
+        const targetYaw = Math.atan2(mdx, mdz);
+        let diff = targetYaw - this.yaw;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        this.yaw += diff * Math.min(1, dt * 5);
+        this.group.rotation.y = this.yaw;
+      }
+    }
+    this._animate(dt, moving, isChasing);
+
+    out.state = this.state;
+    out.attacking = (this.state === 'chase' || this.state === 'boss') && dist < GHOST.ATTACK_DIST && !pl.hidden;
+    return out;
+  }
+}
+
+</script>
+<script>
+// ===== js/touch.js =====
+// Kontrol sentuh untuk HP dan tablet. Stik virtual di kiri bawah, geser layar untuk menoleh,
+// tombol di kanan bawah. Hanya aktif pada perangkat dengan layar sentuh utama.
+
+const Touch = (() => {
+  const isTouch = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+  if (isTouch) document.body.classList.add('is-touch');
+
+  const state = {
+    enabled: isTouch,
+    mx: 0, mz: 0,        // stik: mx ke kanan, mz ke bawah (sama dengan tombol S)
+    lookX: 0, lookY: 0,  // geseran layar yang belum dipakai
+    run: false,
+    crouch: false,
+    pending: []          // aksi sekali tekan: flash, uv, interact
+  };
+
+  const stick = document.getElementById('stick');
+  const knob = document.getElementById('stick-knob');
+  const R = 48;
+  let stickId = null;
+  let cx = 0, cy = 0;
+
+  function moveKnob(dx, dy) {
+    knob.style.transform = `translate(${dx}px, ${dy}px)`;
+  }
+
+  function stickFrom(e) {
+    let dx = e.clientX - cx;
+    let dy = e.clientY - cy;
+    const d = Math.hypot(dx, dy);
+    if (d > R) { dx = (dx / d) * R; dy = (dy / d) * R; }
+    moveKnob(dx, dy);
+    state.mx = dx / R;
+    state.mz = dy / R;
+  }
+
+  stick.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    stickId = e.pointerId;
+    stick.setPointerCapture(e.pointerId);
+    const r = stick.getBoundingClientRect();
+    cx = r.left + r.width / 2;
+    cy = r.top + r.height / 2;
+    stickFrom(e);
+  });
+  stick.addEventListener('pointermove', e => {
+    if (e.pointerId === stickId) stickFrom(e);
+  });
+  function endStick(e) {
+    if (e.pointerId !== stickId) return;
+    stickId = null;
+    state.mx = 0;
+    state.mz = 0;
+    moveKnob(0, 0);
+  }
+  stick.addEventListener('pointerup', endStick);
+  stick.addEventListener('pointercancel', endStick);
+
+  // Geser di area layar untuk menoleh
+  const view = document.getElementById('canvas-container');
+  let lookId = null, lx = 0, ly = 0;
+  view.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch') return;
+    lookId = e.pointerId;
+    lx = e.clientX;
+    ly = e.clientY;
+  });
+  view.addEventListener('pointermove', e => {
+    if (e.pointerId !== lookId) return;
+    state.lookX += e.clientX - lx;
+    state.lookY += e.clientY - ly;
+    lx = e.clientX;
+    ly = e.clientY;
+  });
+  function endLook(e) {
+    if (e.pointerId === lookId) lookId = null;
+  }
+  view.addEventListener('pointerup', endLook);
+  view.addEventListener('pointercancel', endLook);
+
+  // Tombol aksi
+  document.querySelectorAll('#actions .tbtn[data-act]').forEach(btn => {
+    const act = btn.dataset.act;
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      if (act === 'run') {
+        state.run = true;
+      } else if (act === 'crouch') {
+        state.crouch = !state.crouch;
+      } else {
+        state.pending.push(act);
+      }
+    });
+    const release = () => { if (act === 'run') state.run = false; };
+    btn.addEventListener('pointerup', release);
+    btn.addEventListener('pointercancel', release);
+    btn.addEventListener('pointerleave', release);
+  });
+
+  function take() {
+    const list = state.pending;
+    state.pending = [];
+    return list;
+  }
+
+  function consumeLook() {
+    const r = { x: state.lookX, y: state.lookY };
+    state.lookX = 0;
+    state.lookY = 0;
+    return r;
+  }
+
+  // Menandai tombol sesuai keadaan permainan (senter nyala, mode UV, jongkok)
+  function syncButtons(flashOn, uvOn) {
+    const map = {
+      crouch: state.crouch,
+      flash: flashOn,
+      uv: uvOn
+    };
+    document.querySelectorAll('#actions .tbtn[data-act]').forEach(btn => {
+      const k = btn.dataset.act;
+      if (k in map) btn.classList.toggle('on', !!map[k]);
+    });
+  }
+
+  // Panduan putar layar untuk HP yang dipegang tegak
+  const rotate = document.getElementById('rotate');
+  rotate.style.zIndex = '40';
+  let skipped = false;
+  function checkOrientation() {
+    const portrait = window.innerHeight > window.innerWidth;
+    rotate.hidden = !(isTouch && portrait && !skipped);
+  }
+  document.getElementById('rotate-skip').addEventListener('click', () => {
+    skipped = true;
+    checkOrientation();
+  });
+  window.addEventListener('resize', checkOrientation);
+  window.addEventListener('orientationchange', checkOrientation);
+  checkOrientation();
+
+  return { state, take, consumeLook, syncButtons };
+})();
+
+</script>
+<script>
+// ===== js/ui.js =====
+// Tampilan: referensi elemen, HUD, radar, daftar catatan, jumpscare, pilihan akhir, dan layar akhir.
+// Logika permainan ada di game.js. File ini hanya menggambar dan menampilkan.
+
+const $ = id => document.getElementById(id);
+const els = {
+  hud: $('hud'), crosshair: $('crosshair'), prompt: $('prompt'), notice: $('notice'),
+  hpBar: $('hp-bar'), hpText: $('hp-text'), batBar: $('bat-bar'), batText: $('bat-text'),
+  stamBar: $('stam-bar'), flashMode: $('flash-mode'), minimap: $('minimap'),
+  chipNotes: $('chip-notes'), chipTime: $('chip-time'), hudFlash: $('hud-flash'), hudUV: $('hud-uv'),
+  pause: $('pause'), gameover: $('gameover'), gameoverText: $('gameover-text'),
+  choice: $('choice'), choiceA: $('choice-a'), choiceB: $('choice-b'), choiceC: $('choice-c'),
+  ending: $('ending'), endingKicker: $('ending-kicker'), endingTitle: $('ending-title'), endingText: $('ending-text'),
+  journal: $('journal'), journalList: $('journal-list'),
+  dmg: $('damage-overlay'), scare: $('scare-overlay'), fade: $('fade'),
+  guide: $('guide'), goalWrap: $('goal-arrow'), goalSvg: $('goal-svg'), goalDist: $('goal-dist'),
+  objectiveText: $('objective-text'),
+  jumpscare: $('jumpscare'), jsText: $('js-text')
+};
+const mctx = els.minimap.getContext('2d');
+
+// Akhir cerita: judul dan ringkasan singkat
+const ENDINGS = {
+  sad: {
+    kicker: 'Akhir 1 dari 3 · Yang Hilang',
+    title: 'Yang Hilang',
+    text: 'Segel tertutup dengan darah Ayu. Kampung Pasirranji kembali sunyi, dan namamu tidak pernah lagi disebut di sana.'
+  },
+  happy: {
+    kicker: 'Akhir 2 dari 3 · Fajar Pasirranji',
+    title: 'Fajar',
+    text: 'Jimat itu membebaskan Ayu. Segel runtuh, dan lonceng balai RT berbunyi untuk pertama kalinya setelah bertahun-tahun.'
+  },
+  tumbal: {
+    kicker: 'Akhir 3 dari 3 · Penjaga Segel',
+    title: 'Penjaga',
+    text: 'Kau menggantikan Ayu di dalam segel. Ayu pulang, tapi dari jendela rumah Bi Titi, sesuatu yang pucat masih menunggumu.'
+  }
+};
+
+const JS_TEXT = {
+  kamar: 'Ia ada di dalam lemari. Sejak tadi.',
+  attack: 'Ia tepat di belakangmu.',
+  warp: 'Ia sudah berdiri di belakangmu.',
+  death: ''
+};
+
+function setFade(v) { els.fade.style.opacity = String(v); }
+
+function fmtTime(sec) {
+  const s = Math.floor(sec);
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function setFlashMode(text, uv, off) {
+  els.flashMode.textContent = text + (off ? ' · mati' : '');
+  els.flashMode.classList.toggle('uv', uv);
+}
+
+// Penanda HUD: darah, baterai, stamina, catatan, waktu, dan tombol aktif
+function updateHUD(G) {
+  const hp = Math.ceil(G.hp);
+  const bat = Math.ceil(G.battery);
+  els.hpBar.style.width = hp + '%';
+  els.hpText.textContent = hp + '%';
+  els.batBar.style.width = bat + '%';
+  els.batText.textContent = bat + '%';
+  els.stamBar.style.width = Math.ceil(G.stamina) + '%';
+  setFlashMode(G.uvOn ? 'Senter: mode UV [R]' : 'Senter: biasa [R]', G.uvOn, !G.flashOn);
+  els.chipNotes.textContent = G.notes.size + '/3';
+  els.chipTime.textContent = fmtTime(G.elapsed);
+  els.hudFlash.classList.toggle('on', G.flashOn);
+  els.hudUV.classList.toggle('on', G.uvOn);
+  els.hudUV.style.opacity = G.uvOwned ? '1' : '0.35'; // redup sampai senter UV didapat
+  if (Touch.state.enabled) Touch.syncButtons(G.flashOn, G.uvOn);
+}
+
+// Radar: bangunan, pagar, benda, warga, dan SCP 705 yang terlihat saat dekat atau mengejar
+function drawMinimap(G, ghost) {
+  const cam = World.camera;
+  const px = cam.position.x, pz = cam.position.z, yaw = cam.rotation.y;
+  const c = Math.cos(yaw), s = Math.sin(yaw);
+  const S = 4.0, CX = 75, CY = 75;
+  const P = (x, z) => [CX + ((x - px) * c - (z - pz) * s) * S, CY + ((x - px) * s + (z - pz) * c) * S];
+
+  mctx.clearRect(0, 0, 150, 150);
+  mctx.save();
+  mctx.beginPath();
+  mctx.arc(CX, CY, 73, 0, Math.PI * 2);
+  mctx.clip();
+  mctx.fillStyle = 'rgba(6, 4, 4, 0.92)';
+  mctx.fillRect(0, 0, 150, 150);
+
+  // Cincin jarak
+  mctx.strokeStyle = 'rgba(200, 30, 30, 0.22)';
+  mctx.lineWidth = 1;
+  mctx.beginPath();
+  mctx.arc(CX, CY, 36, 0, Math.PI * 2);
+  mctx.arc(CX, CY, 72, 0, Math.PI * 2);
+  mctx.stroke();
+
+  // Dinding dan pagar
+  mctx.fillStyle = 'rgba(160, 40, 35, 0.75)';
+  World.colliders.forEach(col => {
+    const pts = [P(col.x1, col.z1), P(col.x2, col.z1), P(col.x2, col.z2), P(col.x1, col.z2)];
+    mctx.beginPath();
+    mctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < 4; i++) mctx.lineTo(pts[i][0], pts[i][1]);
+    mctx.closePath();
+    mctx.fill();
+  });
+
+  // Pintu Ruang Segel yang masih terkunci
+  if (!G.segelOpen) {
+    const a = P(-16, WORLD_DATA.segelDoorZ[0]), b = P(-16, WORLD_DATA.segelDoorZ[1]);
+    mctx.strokeStyle = '#b57bff';
+    mctx.lineWidth = 2;
+    mctx.beginPath();
+    mctx.moveTo(a[0], a[1]);
+    mctx.lineTo(b[0], b[1]);
+    mctx.stroke();
+  }
+
+  // Warga
+  mctx.fillStyle = '#d8c9a6';
+  World.npcs.forEach(n => {
+    if (Math.hypot(n.x - px, n.z - pz) > 18) return;
+    const [x, y] = P(n.x, n.z);
+    mctx.beginPath();
+    mctx.arc(x, y, 3, 0, Math.PI * 2);
+    mctx.fill();
+  });
+
+  // Benda yang belum diambil
+  const colors = { note: '#e8d9b0', battery: '#9fe7a8' };
+  World.items.forEach(it => {
+    if (it.collected) return;
+    if (Math.hypot(it.pos[0] - px, it.pos[2] - pz) > 18) return;
+    const [x, y] = P(it.pos[0], it.pos[2]);
+    mctx.fillStyle = colors[it.kind] || '#fff';
+    mctx.beginPath();
+    mctx.arc(x, y, 2.4, 0, Math.PI * 2);
+    mctx.fill();
+  });
+
+  // SCP 705
+  if (ghost && G.ghostOn && !ghost.dead && ghost.group.visible) {
+    const d = Math.hypot(ghost.x - px, ghost.z - pz);
+    const chasing = ghost.state === 'chase' || ghost.state === 'boss';
+    if (chasing || d < 12) {
+      const [x, y] = P(ghost.x, ghost.z);
+      mctx.fillStyle = `rgba(255, 40, 40, ${0.6 + Math.sin(performance.now() * 0.012) * 0.4})`;
+      mctx.beginPath();
+      mctx.arc(x, y, 4.5, 0, Math.PI * 2);
+      mctx.fill();
+    }
+  }
+  mctx.restore();
+
+  // Penanda pemain di tengah
+  mctx.fillStyle = '#e8d9b0';
+  mctx.beginPath();
+  mctx.moveTo(CX, CY - 7);
+  mctx.lineTo(CX + 5, CY + 5);
+  mctx.lineTo(CX - 5, CY + 5);
+  mctx.closePath();
+  mctx.fill();
+}
+
+// Daftar catatan Ayu dan petunjuk dari warga
+function renderJournal(G) {
+  const list = els.journalList;
+  list.textContent = '';
+  const add = (title, lines, cls) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'journal-entry' + (cls ? ' ' + cls : '');
+    const h = document.createElement('h3');
+    h.textContent = title;
+    wrap.appendChild(h);
+    lines.forEach(t => {
+      const p = document.createElement('p');
+      p.textContent = t;
+      wrap.appendChild(p);
+    });
+    list.appendChild(wrap);
+  };
+  const notes = ['note1', 'note2', 'note3'].filter(id => G.notes.has(id));
+  notes.forEach(id => {
+    const lines = BEATS[id];
+    add(lines[0][0], lines.filter(l => l[0].indexOf('Catatan') === 0).map(l => l[1]));
+  });
+  if (G.clues.length) add('Petunjuk dari warga', G.clues, 'clue');
+  if (!notes.length && !G.clues.length) {
+    const p = document.createElement('p');
+    p.className = 'journal-empty';
+    p.textContent = 'Belum ada catatan. Cari kertas-kertas Ayu di kampung ini, dan dengarkan warga yang mau bicara.';
+    list.appendChild(p);
+  }
+}
+
+// Jumpscare: wajah SCP 705 menerjang layar, disertai suara dan kilatan
+function showJumpscare(kind, onDone) {
+  const el = els.jumpscare;
+  audioSys.jumpscare();
+  els.jsText.textContent = JS_TEXT[kind] || '';
+  el.classList.remove('js-go');
+  el.hidden = false;
+  void el.offsetWidth; // mulai ulang animasi
+  el.classList.add('js-go');
+  clearTimeout(showJumpscare.t);
+  showJumpscare.t = setTimeout(() => {
+    el.hidden = true;
+    el.classList.remove('js-go');
+    if (onDone) onDone();
+  }, 1250);
+}
+
+// Pilihan di ruang segel. flags menentukan pilihan mana yang tampil.
+let choiceHandler = null;
+function showChoice(flags, onPick) {
+  els.choiceB.hidden = !flags.happy;
+  els.choiceC.hidden = !flags.tumbal;
+  choiceHandler = onPick;
+  els.choice.hidden = false;
+  els.choiceA.focus();
+}
+
+function hideChoice() {
+  els.choice.hidden = true;
+  choiceHandler = null;
+}
+
+function onChoicePick(kind) {
+  const h = choiceHandler;
+  hideChoice();
+  if (h) h(kind);
+}
+
+// Layar akhir: nada dan teks sesuai ending. Teks ringkas diketik per baris.
+function showEnding(kind) {
+  const e = ENDINGS[kind] || ENDINGS.sad;
+  els.ending.className = 'overlay ending-' + kind;
+  els.endingKicker.textContent = e.kicker;
+  els.endingTitle.textContent = e.title;
+  els.endingText.textContent = e.text;
+  els.ending.hidden = false;
+  $('ending-btn').focus();
+}
+
+function showGameOver(text) {
+  els.gameoverText.textContent = text;
+  els.gameover.hidden = false;
+  $('retry-btn').focus();
+}
+
+// Kilatan layar putih-merah untuk efek kejut ringan
+function flashScreen(opacity) {
+  els.scare.style.opacity = String(opacity);
+}
+
+</script>
+<script>
+// ===== js/game.js =====
+// Inti permainan: status pemain, input, interaksi dengan warga, progres bab, ritual, dan tiga akhir.
+// Tampilan ada di ui.js. Penghubung tombol dan loop utama ada di main.js.
+
+const _dir = new THREE.Vector3();
+let G = freshState();
+let ghost = null;
+const keys = {};
+
+function freshState() {
+  return {
+    started: false, paused: false, over: false, ended: false,
+    noLock: false, everLocked: false,
+    hp: 100, battery: 100, stamina: 100,
+    flashOn: true, uvOn: false, uvTick: 0, uvSnd: 0, uvOwned: false,
+    moving: false, sprinting: false, crouch: false, bobT: 0, baseH: 1.6,
+    hiding: false, saved: null,
+    notes: new Set(), clues: [],
+    ruopTalked: false, sarkumTalked: false, titiCount: 0, titiTold: false,
+    jimat: false, keyGot: false,
+    rumahMasuk: false, kamarScared: false, segelOpen: false, doorAnim: 1,
+    ritualStarted: false, ritualDone: false, ghostOn: false,
+    lastHurt: 99, scareCD: 0, warpCD: 0, ambT: 10,
+    target: null, elapsed: 0
+  };
+}
+
+function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+function flickerLamps(sec) {
+  World.lamps.forEach(l => { l.flicker = sec; });
+}
+
+// ---------- Tujuan dan progres bab ----------
+function refreshObjective() {
+  let ch, obj;
+  if (!G.ruopTalked) {
+    ch = 'Bab 1 · Gerbang Kampung'; obj = 'Temui Kong Ruop di pos ronda.';
+  } else if (!G.sarkumTalked) {
+    ch = 'Bab 2 · Balai RT'; obj = 'Temui Abah Sarkum di balai RT, di sebelah kiri jalan.';
+  } else if (!G.keyGot) {
+    ch = 'Bab 3 · Kunci Segel'; obj = 'Cari Bi Titi, rumah di sebelah kanan jalan.';
+  } else if (!(G.notes.has('note1') && G.notes.has('note2'))) {
+    ch = 'Bab 4 · Rumah Pasirranji'; obj = 'Cari catatan Ayu di rumah ujung jalan.';
+  } else if (!G.segelOpen) {
+    ch = 'Bab 5 · Kuburan Tua'; obj = 'Buka Ruang Segel di balik kuburan.';
+  } else if (!G.notes.has('note3')) {
+    ch = 'Bab 5 · Ruang Segel'; obj = 'Temukan catatan terakhir Ayu di dalam ruang segel.';
+  } else if (!G.ritualStarted) {
+    ch = 'Bab 6 · Altar'; obj = 'Periksa altar dan mulai ritual.';
+  } else if (!G.ritualDone) {
+    ch = 'Bab 6 · Ritual'; obj = 'Hentikan SCP 705 dengan senter UV.';
+  } else {
+    ch = 'Akhir'; obj = 'Pilih apa yang kau lakukan pada segel.';
+  }
+  Story.setChapter(ch);
+  Story.setObjective(obj);
+}
+
+// Zona pemicu cerita (dicek tiap frame, hanya sekali per zona)
+function checkZones() {
+  const p = World.camera.position;
+  if (!G.rumahMasuk && Math.abs(p.x) < 4.4 && p.z < -12.6 && p.z > -19.6) {
+    G.rumahMasuk = true;
+    Story.play('rumahAyu', refreshObjective);
+    refreshObjective();
+  }
+  // Kamar di Rumah Pasirranji: lemari terbuka dan wajah SCP 705 muncul
+  if (!G.kamarScared && Math.abs(p.x) < 4.4 && p.z < -16.4 && p.z > -19.6) {
+    G.kamarScared = true;
+    flickerLamps(2.2);
+    audioSys.creak();
+    const after = () => Story.play('kamar');
+    if (Settings.scare()) showJumpscare('kamar', after);
+    else after();
+  }
+}
+
+// ---------- Warga ----------
+function npcById(id) { return World.npcs.find(n => n.id === id); }
+
+function addClue(who, text) {
+  G.clues.push(who + ': ' + text);
+}
+
+function talk(id) {
+  if (G.over || G.ended) return;
+  if (id === 'ruop') {
+    if (!G.ruopTalked) {
+      G.ruopTalked = true;
+      G.uvOwned = true;
+      addClue('Kong Ruop', 'SCP 705 dikurung di kuburan tua. Ia keluar saat malam sudah larut. Senter UV bisa melukainya.');
+      Story.play('ruop1', () => { activateGhost(); refreshObjective(); });
+    } else {
+      Story.play('ruop2');
+    }
+  } else if (id === 'sarkum') {
+    if (!G.sarkumTalked) {
+      G.sarkumTalked = true;
+      G.jimat = true;
+      addClue('Abah Sarkum', 'Jimat Pasirranji bisa membuka segel dari dalam, asal Ayu sudah ditemukan dan cahaya UV menyala.');
+      Story.play('sarkum1', refreshObjective);
+    } else {
+      Story.play('sarkum2');
+    }
+  } else if (id === 'titi') {
+    G.titiCount++;
+    if (G.titiCount === 1) {
+      G.keyGot = true;
+      addClue('Bi Titi', 'Kunci Ruang Segel ada padaku. Catatan Ayu tersimpan di rumah Pasirranji.');
+      Story.play('titi1', refreshObjective);
+    } else if (G.titiCount === 2) {
+      G.titiTold = true;
+      addClue('Bi Titi', 'Segel butuh seseorang di dalamnya. Ada yang bersedia menggantikan Ayu.');
+      Story.play('titi2', refreshObjective);
+    } else {
+      Story.play('titi3');
+    }
+  }
+  refreshObjective();
+}
+
+// ---------- Interaksi ----------
+function labelFor(it) {
+  if (it.kind === 'note') return `Ambil ${it.title}`;
+  if (it.kind === 'battery') return 'Ambil baterai';
+  return 'Ambil';
+}
+
+function findTarget() {
+  const cam = World.camera;
+  const p = cam.position;
+  const yaw = cam.rotation.y;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  let best = null, bestD = Infinity;
+
+  const consider = (x, z, range, label, action) => {
+    const dx = x - p.x, dz = z - p.z;
+    const d = Math.hypot(dx, dz);
+    if (d > range) return;
+    const facing = d < 0.01 ? 1 : (dx * fx + dz * fz) / d;
+    if (facing < 0.55 && d > 1.1) return;
+    if (d < bestD) { bestD = d; best = { label, action }; }
+  };
+
+  World.items.forEach(it => {
+    if (!it.collected) consider(it.pos[0], it.pos[2], 2.2, labelFor(it), () => pickup(it));
+  });
+  World.npcs.forEach(n => {
+    consider(n.x, n.z, 2.4, `Bicara dengan ${n.name}`, () => talk(n.id));
+  });
+  if (!G.segelOpen) {
+    consider(-16.9, -22, 2.6, G.keyGot ? 'Buka pintu Ruang Segel' : 'Pintu Ruang Segel terkunci', tryDoor);
+  }
+  consider(World.hideSpot.x, World.hideSpot.z, 2.2,
+    G.hiding ? 'Keluar dari lemari' : 'Sembunyi di lemari', toggleHide);
+  if (G.segelOpen && !G.ritualDone) {
+    consider(-19, -22.2, 2.4, G.ritualStarted ? 'Altar' : 'Periksa altar', altar);
+  }
+  return best;
+}
+
+function pickup(it) {
+  if (it.collected) return;
+  it.collected = true;
+  it.mesh.visible = false;
+  audioSys.chime();
+  if (it.kind === 'battery') {
+    G.battery = Math.min(100, G.battery + 40);
+    Story.notice('Baterai senter +40%');
+  } else if (it.kind === 'note') {
+    G.notes.add(it.id);
+    Story.play(it.id, refreshObjective);
+  }
+  refreshObjective();
+}
+
+function tryDoor() {
+  if (G.segelOpen) return;
+  if (!G.keyGot) {
+    Story.play('locked');
+    return;
+  }
+  G.segelOpen = true;
+  G.doorAnim = 0;
+  World.colliders = World.colliders.filter(c => c !== World.doorCollider);
+  World.ayu.visible = true;
+  audioSys.creak();
+  Story.play('segelBuka', refreshObjective);
+  refreshObjective();
+}
+
+function toggleHide() {
+  const cam = World.camera;
+  if (G.hiding) {
+    G.hiding = false;
+    cam.position.x = G.saved.x;
+    cam.position.z = G.saved.z;
+    cam.rotation.y = G.saved.yaw;
+    setFade(0);
+    return;
+  }
+  G.saved = { x: cam.position.x, z: cam.position.z, yaw: cam.rotation.y };
+  G.hiding = true;
+  cam.position.x = World.hideSpot.x;
+  cam.position.z = World.hideSpot.z;
+  cam.rotation.y = World.hideSpot.yaw;
+  setFade(0.82);
+  Story.notice('Kau menahan napas di dalam lemari. Tekan E untuk keluar.');
+}
+
+// Ritual dimulai hanya setelah ketiga catatan terkumpul
+function altar() {
+  if (G.ritualDone || !G.segelOpen) return;
+  if (G.ritualStarted) {
+    Story.say('Bisikan', 'Dia masih di sana. Gunakan senter UV.');
+    return;
+  }
+  if (G.notes.size < 3) {
+    Story.say('Bima', 'Aku belum membaca semua catatan Ayu. Ada bagian yang belum kutemukan.');
+    return;
+  }
+  G.ritualStarted = true;
+  ghost.becomeBoss(-20.6, -20.8);
+  refreshObjective();
+  Story.play('ritual', () => {
+    flickerLamps(3);
+    audioSys.slam();
+    Story.play('ritualFight', refreshObjective);
+    refreshObjective();
+  });
+}
+
+// ---------- Senter dan mode UV ----------
+function toggleFlash() {
+  if (!G.flashOn && G.battery <= 0) {
+    Story.notice('Baterai habis.');
+    return;
+  }
+  G.flashOn = !G.flashOn;
+  audioSys.click();
+}
+
+function toggleUV() {
+  if (!G.uvOwned) {
+    Story.notice('Kau belum punya senter UV. Temui Kong Ruop di pos ronda.');
+    return;
+  }
+  if (!G.uvOn && G.battery <= 0) {
+    Story.notice('Baterai habis. Mode UV tidak bisa dipakai.');
+    return;
+  }
+  G.uvOn = !G.uvOn;
+  if (G.uvOn) G.flashOn = true;
+  audioSys.click();
+}
+
+function updateFlashlight(dt) {
+  const cam = World.camera;
+  const f = World.flashlight;
+  if (G.flashOn) {
+    G.battery = Math.max(0, G.battery - (G.uvOn ? 2.2 : 0.9) * Settings.diff().drain * dt);
+    if (G.battery <= 0) {
+      G.flashOn = false;
+      Story.notice('Baterai senter habis.');
+    }
+  }
+  f.intensity = G.flashOn ? (G.uvOn ? 3.4 : 2.5) : 0;
+  f.color.setHex(G.uvOn ? 0xa855f7 : 0xfff1dc);
+  f.position.copy(cam.position);
+  _dir.set(0, 0, -1).applyQuaternion(cam.quaternion);
+  f.target.position.copy(cam.position).addScaledVector(_dir, 10);
+  const showUV = G.uvOn && G.flashOn;
+  World.sigils.forEach(s => { s.visible = showUV; });
+}
+
+// Sinar UV ke SCP 705. Di mode bos, sinar melukai. Di luar itu, sinar membuatnya mundur.
+function updateUV(dt) {
+  if (!ghost || !ghost.active || ghost.dead) return;
+  if (!(G.uvOn && G.flashOn && G.battery > 0)) return;
+  const cam = World.camera;
+  _dir.set(0, 0, -1).applyQuaternion(cam.quaternion);
+  const gx = ghost.x - cam.position.x;
+  const gz = ghost.z - cam.position.z;
+  const gy = 1.4 - cam.position.y;
+  const dist = Math.hypot(gx, gy, gz);
+  if (dist > 12 || dist < 0.01) return;
+  const dot = (_dir.x * gx + _dir.y * gy + _dir.z * gz) / dist;
+  if (dot < Math.cos(0.26)) return;
+
+  G.uvSnd -= dt;
+  if (G.uvSnd <= 0) { audioSys.uvBeam(); G.uvSnd = 0.2; }
+
+  if (ghost.state === 'boss') {
+    if (ghost.hurt(26 * dt, true)) onGhostDead();
+  } else {
+    G.uvTick -= dt;
+    if (G.uvTick <= 0) {
+      ghost.hurt(0, false);
+      G.uvTick = 0.9;
+    }
+  }
+}
+
+function activateGhost() {
+  if (G.ghostOn) return;
+  G.ghostOn = true;
+  ghost.activate(-6, -9);
+  flickerLamps(2.5);
+  audioSys.whisper(0);
+}
+
+function onGhostDead() {
+  G.ritualDone = true;
+  G.uvOn = false;
+  audioSys.screech();
+  flickerLamps(2);
+  refreshObjective();
+  ghost.dissolve(() => {
+    Story.play('bossDown', openChoice);
+  });
+}
+
+// Tiga pilihan. Pilihan bahagia dan tumbal muncul hanya jika syaratnya sudah terpenuhi.
+function openChoice() {
+  G.ritualDone = true;
+  refreshObjective();
+  showChoice({ happy: G.jimat && G.segelOpen, tumbal: G.titiTold }, finishEnding);
+}
+
+const ENDING_SCRIPT = { sad: 'endSad', happy: 'endHappy', tumbal: 'endTumbal' };
+
+function finishEnding(kind) {
+  if (G.ended) return;
+  G.ended = true;
+  G.uvOn = false;
+  G.flashOn = false;
+  if (document.pointerLockElement === document.body) document.exitPointerLock();
+  Story.play(ENDING_SCRIPT[kind] || 'endSad', () => {
+    audioSys.ending(kind);
+    showEnding(kind);
+  });
+}
+
+// ---------- Pemain ----------
+function updatePlayer(dt) {
+  const cam = World.camera;
+  const ts = Touch.state;
+  const sx = Math.abs(ts.mx) < 0.15 ? 0 : ts.mx;
+  const sz = Math.abs(ts.mz) < 0.15 ? 0 : ts.mz;
+  const mx = clamp((keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0) + sx, -1, 1);
+  const mz = clamp((keys.KeyS ? 1 : 0) - (keys.KeyW ? 1 : 0) + sz, -1, 1);
+  G.crouch = !!(keys.ControlLeft || keys.ControlRight || ts.crouch);
+  G.moving = Math.abs(mx) > 0.01 || Math.abs(mz) > 0.01;
+  const wantSprint = !!(keys.ShiftLeft || keys.ShiftRight || ts.run) && G.moving && !G.crouch;
+  G.sprinting = wantSprint && G.stamina > 0;
+  if (G.sprinting) G.stamina = Math.max(0, G.stamina - 24 * dt);
+  else G.stamina = Math.min(100, G.stamina + 14 * dt);
+
+  const speed = G.crouch ? 1.7 : (G.sprinting ? 6.0 : 3.6);
+  const yaw = cam.rotation.y;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+  let dx = rx * mx + fx * -mz;
+  let dz = rz * mx + fz * -mz;
+  const len = Math.hypot(dx, dz);
+  if (len > 0) {
+    dx /= len;
+    dz /= len;
+    const step = speed * dt;
+    const nx = cam.position.x + dx * step;
+    const nz = cam.position.z + dz * step;
+    if (!blockedAt(nx, cam.position.z, World.colliders, 0.3)) cam.position.x = nx;
+    if (!blockedAt(cam.position.x, nz, World.colliders, 0.3)) cam.position.z = nz;
+    cam.position.x = clamp(cam.position.x, ARENA.x1, ARENA.x2);
+    cam.position.z = clamp(cam.position.z, ARENA.z1, ARENA.z2);
+  }
+
+  // Goyangan kepala saat berjalan
+  G.baseH = G.crouch ? 1.0 : 1.6;
+  if (G.moving) G.bobT += dt * (G.sprinting ? 11 : 7.5);
+  const bob = G.moving && !Settings.reduce() ? Math.sin(G.bobT) * (G.sprinting ? 0.06 : 0.035) : 0;
+  cam.position.y += ((G.baseH + bob) - cam.position.y) * Math.min(1, dt * 10);
+
+  // Cadangan jika mouse tidak bisa dikunci: panah
+  if (G.noLock) {
+    if (keys.ArrowLeft) cam.rotation.y += 1.8 * dt;
+    if (keys.ArrowRight) cam.rotation.y -= 1.8 * dt;
+    if (keys.ArrowUp) cam.rotation.x = clamp(cam.rotation.x + 1.2 * dt, -1.25, 1.25);
+    if (keys.ArrowDown) cam.rotation.x = clamp(cam.rotation.x - 1.2 * dt, -1.25, 1.25);
+  }
+}
+
+function updateDoor(dt) {
+  if (G.doorAnim >= 1 || !World.doorPivot) return;
+  G.doorAnim = Math.min(1, G.doorAnim + dt / 1.6);
+  const k = 1 - Math.pow(1 - G.doorAnim, 3);
+  World.doorPivot.rotation.y = -k * Math.PI * 0.5;
+}
+
+function hurtPlayer(dt) {
+  G.hp = Math.max(0, G.hp - 26 * Settings.diff().damage * dt);
+  G.lastHurt = 0;
+  if (G.scareCD <= 0) {
+    G.scareCD = 7;
+    if (Settings.scare()) showJumpscare('attack');
+    else flashScreen(1);
+  }
+  if (G.hp <= 0) {
+    playerDies(ghost && ghost.state === 'boss'
+      ? 'Ia menyeretmu ke tengah lingkaran segel. Lilin-lilin padam satu per satu.'
+      : 'Ia menangkapmu di jalan sepi kampung ini. Wajah panjangnya sudah sangat dekat.');
+  }
+}
+
+function playerDies(text) {
+  if (G.over) return;
+  G.over = true;
+  G.hp = 0;
+  if (document.pointerLockElement === document.body) document.exitPointerLock();
+  if (Settings.scare()) showJumpscare('death', () => showGameOver(text));
+  else showGameOver(text);
+}
+
+// ---------- Tujuan dan panah penunjuk ----------
+function npcPos(id) {
+  const n = npcById(id);
+  return n ? { x: n.x, z: n.z } : null;
+}
+
+function itemPos(id) {
+  const it = World.items.find(i => i.id === id);
+  return it && !it.collected ? { x: it.pos[0], z: it.pos[2] } : null;
+}
+
+function currentGoal() {
+  if (!G.ruopTalked) return npcPos('ruop');
+  if (!G.sarkumTalked) return npcPos('sarkum');
+  if (!G.keyGot) return npcPos('titi');
+  if (!(G.notes.has('note1') && G.notes.has('note2'))) return { x: 0, z: -14 };
+  if (!G.segelOpen) return { x: -16.9, z: -22 };
+  if (!G.notes.has('note3')) return itemPos('note3');
+  if (!G.ritualStarted) return { x: -19, z: -22.2 };
+  if (!G.ritualDone && ghost) return { x: ghost.x, z: ghost.z };
+  return null;
+}
+
+function updateGoal() {
+  const goal = (G.hiding || G.ended || G.over) ? null : currentGoal();
+  els.goalWrap.hidden = !goal;
+  if (!goal) return;
+  const cam = World.camera;
+  const yaw = cam.rotation.y;
+  const fx = -Math.sin(yaw), fz = -Math.cos(yaw);
+  const rx = Math.cos(yaw), rz = -Math.sin(yaw);
+  const dx = goal.x - cam.position.x;
+  const dz = goal.z - cam.position.z;
+  const fwd = dx * fx + dz * fz;
+  const right = dx * rx + dz * rz;
+  const ang = Math.atan2(right, fwd) * 180 / Math.PI;
+  els.goalSvg.style.transform = `rotate(${ang.toFixed(1)}deg)`;
+  els.goalDist.textContent = `${Math.round(Math.hypot(dx, dz))} m`;
+}
+
+// Geseran layar untuk menoleh di HP
+function applyTouchLook(active) {
+  const l = Touch.consumeLook();
+  if (!active || (l.x === 0 && l.y === 0)) return;
+  const cam = World.camera;
+  const s = Settings.sensMul() * 0.0045;
+  cam.rotation.y -= l.x * s;
+  cam.rotation.x = clamp(cam.rotation.x - l.y * s, -1.25, 1.25);
+}
+
+function handleTouchAction(act) {
+  if (act === 'interact') {
+    if (Story.isOpen()) Story.advance();
+    else if (!G.over && !G.ended) interact();
+    return;
+  }
+  if (Story.isOpen() || G.over || G.ended) return;
+  if (act === 'flash') toggleFlash();
+  else if (act === 'uv') toggleUV();
+}
+
+function interact() {
+  const t = findTarget();
+  if (t) t.action();
+}
+
+// ---------- Jeda, jurnal, dan menu ----------
+function pauseGame() {
+  if (!G.started || G.paused || G.over || G.ended) return;
+  G.paused = true;
+  els.pause.hidden = false;
+  if (document.pointerLockElement === document.body) document.exitPointerLock();
+  $('resume-btn').focus();
+}
+
+function resumeGame() {
+  if (!G.paused) return;
+  G.paused = false;
+  els.pause.hidden = true;
+  if (!G.noLock && !Touch.state.enabled) requestLock();
+}
+
+let journalFrom = null; // 'play' | 'pause' | null
+
+function openJournal(from) {
+  if (!G.started || G.over || G.ended || !els.journal.hidden) return;
+  if (from === 'play' && Story.isOpen()) return;
+  journalFrom = from;
+  renderJournal(G);
+  els.journal.hidden = false;   // di-set dulu sebelum pointer lock dilepas
+  if (from === 'pause') {
+    els.pause.hidden = true;
+  } else if (!G.paused) {
+    G.paused = true;
+    if (document.pointerLockElement === document.body) document.exitPointerLock();
+  }
+  $('journal-close').focus();
+}
+
+function closeJournal() {
+  if (els.journal.hidden) return;
+  els.journal.hidden = true;
+  if (journalFrom === 'pause') {
+    els.pause.hidden = false;
+    $('resume-btn').focus();
+    return;
+  }
+  journalFrom = null;
+  G.paused = false;
+  if (!G.noLock && !Touch.state.enabled) requestLock();
+}
+
+let guideReturn = null;
+function openGuide(from) {
+  guideReturn = from || null;
+  els.guide.hidden = false;
+  $('guide-close').focus();
+}
+
+function closeGuide() {
+  els.guide.hidden = true;
+  Settings.markGuideSeen();
+  const cb = guideReturn;
+  guideReturn = null;
+  if (cb) cb();
+}
+
+// Kembali ke menu utama. Dunia dibangun ulang dan permainan berhenti.
+function toMenu() {
+  document.exitPointerLock();
+  resetWorld();
+  G.started = false;
+  journalFrom = null;
+  els.hud.hidden = true;
+  els.crosshair.hidden = true;
+  els.prompt.hidden = true;
+  els.notice.hidden = true;
+  els.pause.hidden = true;
+  els.journal.hidden = true;
+  els.gameover.hidden = true;
+  els.ending.hidden = true;
+  els.jumpscare.hidden = true;
+  hideChoice();
+  $('menu').hidden = false;
+  Story.reset();
+  $('start-btn').focus();
+}
+
+// ---------- Dunia, mulai, dan ulang ----------
+function tickTension() {
+  let t = 0.08;
+  if (ghost && G.ghostOn && !ghost.dead) {
+    const d = Math.hypot(ghost.x - World.camera.position.x, ghost.z - World.camera.position.z);
+    if (ghost.state === 'chase' || ghost.state === 'boss') t = 1;
+    else if (ghost.state === 'search') t = 0.6;
+    else if (d < 14) t = 0.4;
+  }
+  if (G.hp < 35) t = Math.max(t, 0.7);
+  audioSys.tension = t;
+}
+
+function resetWorld() {
+  buildWorld();
+  if (ghost) World.scene.remove(ghost.group);
+  ghost = new Ghost(World.scene);
+  const prev = G;
+  G = freshState();
+  G.started = prev.started;
+  G.noLock = prev.noLock;
+  G.everLocked = prev.everLocked;
+  World.camera.position.set(0, 1.6, 22);
+  World.camera.rotation.set(0, 0, 0);
+  Story.reset();
+  els.gameover.hidden = true;
+  els.ending.hidden = true;
+  els.pause.hidden = true;
+  els.journal.hidden = true;
+  els.jumpscare.hidden = true;
+  hideChoice();
+  els.dmg.style.opacity = '0';
+  els.scare.style.opacity = '0';
+  refreshObjective();
+}
+
+function requestLock() {
+  try {
+    const p = document.body.requestPointerLock();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => { if (!G.everLocked) G.noLock = true; });
+    }
+  } catch (e) {
+    if (!G.everLocked) G.noLock = true;
+  }
+}
+
+function startGame() {
+  audioSys.init();
+  $('menu').hidden = true;
+  els.hud.hidden = false;
+  els.crosshair.hidden = false;
+  G.started = true;
+  if (Touch.state.enabled) G.noLock = true;   // layar sentuh tidak memakai pointer lock
+  else requestLock();
+  refreshObjective();
+  Story.play('intro', () => {
+    Story.notice('WASD gerak · Shift lari · Ctrl jongkok · E interaksi · J catatan');
+  });
+}
+
+function restartGame() {
+  requestLock();
+  setFade(1);
+  setTimeout(() => {
+    resetWorld();
+    G.started = true;
+    Story.notice('Kau kembali ke gerbang kampung.');
+    setFade(0);
+  }, 900);
+}
+
+// Update SCP 705 per frame, lalu efek suara dan kejutan saat ia muncul di belakang pemain
+function updateGhost(dt, active, cam) {
+  if (!ghost) return;
+  const pl = {
+    x: cam.position.x, z: cam.position.z,
+    hidden: G.hiding, moving: G.moving && !G.hiding, sprinting: G.sprinting
+  };
+  const out = ghost.update(dt, pl, World.colliders, !active);
+  if (active && out.spotted) audioSys.screech();
+  if (active && out.warped) {
+    audioSys.whisper(rnd(-0.8, 0.8));
+    if (Settings.scare() && G.scareCD <= 0 && Math.random() < 0.5) {
+      G.scareCD = 14;
+      showJumpscare('warp');
+    }
+  }
+  if (active) {
+    updateUV(dt);
+    if (out.attacking) hurtPlayer(dt);
+  }
+}
+
+// Satu langkah logika permainan. Dipanggil oleh loop utama saat tidak dijeda.
+function tick(dt) {
+  const story = Story.isOpen();
+  Story.update(dt);
+  const active = !story && !G.over && !G.ended;
+  if (active) G.elapsed += dt;
+  GHOST.mult = Settings.diff().speed;
+  applyTouchLook(active);
+  Touch.take().forEach(handleTouchAction);
+
+  G.lastHurt += dt;
+  G.scareCD -= dt;
+  if (G.hp > 0 && G.hp < 100 && G.lastHurt > 5) G.hp = Math.min(100, G.hp + 6 * dt);
+
+  if (active) {
+    if (!G.hiding) updatePlayer(dt);
+    updateDoor(dt);
+    checkZones();
+  }
+  updateFlashlight(dt);
+  updateGoal();
+
+  const cam = World.camera;
+  updateGhost(dt, active, cam);
+
+  // Detak jantung mengikuti jarak SCP 705
+  let bpm = 0;
+  if (ghost && G.ghostOn && !ghost.dead) {
+    const d = Math.hypot(ghost.x - cam.position.x, ghost.z - cam.position.z);
+    if (d < 16) bpm = 60 + ((16 - d) / 16) * 85;
+    if (ghost.state === 'chase' || ghost.state === 'boss') bpm = Math.max(bpm, 130);
+  }
+  if (G.hp > 0 && G.hp < 35) bpm = Math.max(bpm, 110);
+  if (G.over || G.ended) bpm = 0;
+  tickTension();
+  audioSys.update(dt, bpm);
+
+  // Bisikan dan suara acak saat sudah berada di kampung
+  if (active && G.rumahMasuk) {
+    G.ambT -= dt;
+    if (G.ambT <= 0) {
+      G.ambT = 8 + Math.random() * 9;
+      const r = Math.random();
+      if (r < 0.4) audioSys.whisper(rnd(-0.7, 0.7));
+      else if (r < 0.75) audioSys.creak();
+      else flickerLamps(0.9);
+    }
+  }
+
+  // Overlay merah saat diserang atau darah rendah
+  const low = Math.max(0, (40 - G.hp) / 40) * 0.6;
+  els.dmg.style.opacity = G.lastHurt < 0.25 ? '1' : String(low);
+
+  // Prompt interaksi
+  const target = active ? findTarget() : null;
+  G.target = target;
+  if (target) {
+    els.prompt.innerHTML = `<kbd>${Touch.state.enabled ? 'Pakai' : 'E'}</kbd> ${target.label}`;
+    els.prompt.hidden = false;
+  } else {
+    els.prompt.hidden = true;
+  }
+
+  updateHUD(G);
+}
+
+</script>
+<script>
+// ===== js/main.js =====
+// Penghubung tombol, input keyboard dan mouse, loop utama, dan boot.
+
+let lastT = performance.now();
+
+function updateLamps(dt) {
+  const t = performance.now() * 0.002;
+  World.lamps.forEach(l => {
+    if (l.flicker > 0) l.flicker -= dt;
+    if (l.flicker > 0 && !Settings.reduce()) {
+      l.light.intensity = Math.random() < 0.4 ? 0.02 : l.base * (0.4 + Math.random() * 0.8);
+    } else {
+      l.light.intensity = l.base * (0.95 + Math.sin(t + l.light.position.x) * 0.05);
+    }
+  });
+}
+
+// Kamera di menu bergoyang pelan menghadap jalan kampung
+function menuSway(now) {
+  World.camera.rotation.y = Math.sin(now * 0.00012) * 0.22;
+  World.camera.rotation.x = -0.04;
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  if (!G.started) {
+    menuSway(now);
+  } else if (!G.paused) {
+    tick(dt);
+    drawMinimap(G, ghost);
+  }
+  updateLamps(dt);
+  World.renderer.render(World.scene, World.camera);
+}
+
+// ---------- Tombol menu, HUD, dan layar ----------
+$('start-btn').addEventListener('click', startGame);
+$('menu-guide-btn').addEventListener('click', () => openGuide(null));
+$('menu-settings-btn').addEventListener('click', () => Settings.open(null));
+$('menu-exit-btn').addEventListener('click', () => {
+  try { window.close(); } catch (e) { /* browser biasa mengabaikan ini */ }
+  $('menu-exit-btn').textContent = 'Tutup tab ini untuk keluar';
+});
+$('guide-close').addEventListener('click', closeGuide);
+
+$('pause-btn').addEventListener('click', pauseGame);
+$('resume-btn').addEventListener('click', resumeGame);
+$('pause-journal-btn').addEventListener('click', () => openJournal('pause'));
+$('pause-guide-btn').addEventListener('click', () => openGuide(null));
+$('pause-settings-btn').addEventListener('click', () => Settings.open(null));
+$('menu-btn').addEventListener('click', toMenu);
+$('journal-close').addEventListener('click', closeJournal);
+
+// Tombol HUD di pojok layar (juga dipakai di HP)
+$('hud-goal').addEventListener('click', () => Story.notice('Tujuan: ' + els.objectiveText.textContent));
+$('hud-journal').addEventListener('click', () => openJournal('play'));
+$('hud-flash').addEventListener('click', () => { if (!G.paused && !Story.isOpen()) toggleFlash(); });
+$('hud-uv').addEventListener('click', () => { if (!G.paused && !Story.isOpen()) toggleUV(); });
+$('hud-interact').addEventListener('click', () => { if (!G.paused && !Story.isOpen()) interact(); });
+$('hud-help').addEventListener('click', () => {
+  if (G.started && !G.over && !G.ended) { pauseGame(); openGuide(null); }
+});
+
+// Tiga pilihan di ruang segel
+document.querySelectorAll('.choice-btn').forEach(b => {
+  b.addEventListener('click', () => onChoicePick(b.dataset.choice));
+});
+
+$('retry-btn').addEventListener('click', restartGame);
+$('gameover-menu-btn').addEventListener('click', toMenu);
+$('ending-btn').addEventListener('click', restartGame);
+$('ending-menu-btn').addEventListener('click', toMenu);
+document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
+
+document.addEventListener('pointerlockchange', () => {
+  const locked = document.pointerLockElement === document.body;
+  if (locked) {
+    G.everLocked = true;
+    G.noLock = false;
+    G.paused = false;
+    els.pause.hidden = true;
+    return;
+  }
+  // Jurnal yang dibuka dari permainan juga melepas kunci mouse; jangan tampilkan menu jeda
+  if (!els.journal.hidden) return;
+  if (G.started && !G.over && !G.ended && !G.noLock) {
+    G.paused = true;
+    els.pause.hidden = false;
+  }
+});
+
+document.addEventListener('mousemove', e => {
+  if (document.pointerLockElement !== document.body) return;
+  const cam = World.camera;
+  const s = Settings.sensMul() * 0.0022;
+  cam.rotation.y -= e.movementX * s;
+  cam.rotation.x = clamp(cam.rotation.x - e.movementY * s, -1.25, 1.25);
+});
+
+// ---------- Keyboard ----------
+document.addEventListener('keydown', e => {
+  const modal = !els.guide.hidden || !$('settings').hidden;
+  // Di permainan, Spasi dan panah dicegah agar tidak menggulir halaman
+  if (G.started && (e.code === 'Space' || e.code.indexOf('Arrow') === 0)) e.preventDefault();
+
+  // Menu utama: panah atas dan bawah memindahkan fokus antar item
+  if (!G.started && !modal && !$('menu').hidden && (e.code === 'ArrowDown' || e.code === 'ArrowUp')) {
+    e.preventDefault();
+    moveMenuFocus(e.code === 'ArrowDown' ? 1 : -1);
+    return;
+  }
+  // Pilihan akhir: biarkan tombol fokus yang bekerja
+  if (!els.choice.hidden) return;
+  // Jurnal terbuka: J atau Esc menutupnya
+  if (!els.journal.hidden) {
+    if (e.code === 'KeyJ' || e.code === 'Escape') closeJournal();
+    return;
+  }
+  if (e.code === 'Escape') {
+    if (!G.started || G.over || G.ended || modal) return;
+    if (G.paused) resumeGame();
+    else if (G.noLock || Touch.state.enabled) pauseGame();
+    return;
+  }
+  if (!G.started || G.paused || G.over || G.ended) return;
+  keys[e.code] = true;
+  if (e.repeat) return;
+  if (Story.isOpen()) {
+    if (e.code === 'KeyE' || e.code === 'Enter' || e.code === 'Space') Story.advance();
+    return;
+  }
+  switch (e.code) {
+    case 'KeyE': interact(); break;
+    case 'KeyF': toggleFlash(); break;
+    case 'KeyR': toggleUV(); break;
+    case 'KeyJ': openJournal('play'); break;
+  }
+});
+
+function moveMenuFocus(dir) {
+  const items = Array.from(document.querySelectorAll('#menu .menu-item'));
+  if (!items.length) return;
+  let i = items.indexOf(document.activeElement);
+  i = i < 0 ? (dir > 0 ? 0 : items.length - 1) : (i + dir + items.length) % items.length;
+  items[i].focus();
+}
+
+document.addEventListener('keyup', e => { keys[e.code] = false; });
+window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+window.addEventListener('resize', () => {
+  World.camera.aspect = window.innerWidth / window.innerHeight;
+  World.camera.updateProjectionMatrix();
+  World.renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ---------- Boot ----------
+createRenderer(document.getElementById('canvas-container'));
+resetWorld();
+requestAnimationFrame(frame);
+$('start-btn').focus(); // Enter langsung memilih "Mulai" di menu
+if (!Settings.seenGuide()) openGuide(null); // tampilkan cara bermain untuk pemain baru
+
+</script>
+
+</body></html>
